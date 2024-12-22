@@ -1,0 +1,138 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>All the free games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Bootstrap CSS (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      background-color: #f8f9fa; /* Light gray background */
+    }
+    .subscribe-card {
+      max-width: 500px;
+      margin: 50px auto;
+    }
+    .message {
+      margin-top: 1rem;
+    }
+    /* Optional: style overrides for spinner */
+    .spinner-border {
+      margin-right: 8px; /* spacing between spinner and button text */
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">All the free games</a>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container my-5">
+    <div class="subscribe-card card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title mb-3">Subscribe to our Newsletter</h2>
+        <p class="card-text">
+          Are you always missing the good free games on Prime Gaming, Epic Store etc.? Then stay updated with our Newsletter! Enter your email below to subscribe.
+        </p>
+        <form id="newsletterForm">
+          <div class="mb-3">
+            <input
+              type="email"
+              class="form-control"
+              id="emailInput"
+              name="email"
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+          <!-- Button with embedded spinner -->
+          <button type="submit" class="btn btn-primary" id="subscribeBtn">
+            <!-- Spinner is hidden by default -->
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+              id="loadingSpinner"
+              style="display: none;"
+            ></span>
+            <!-- Label text -->
+            Subscribe
+          </button>
+          <p class="message" id="statusMessage"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (for optional features like modals) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+
+  <!-- Custom JS for form submission -->
+  <script>
+    document
+      .getElementById("newsletterForm")
+      .addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const emailInput = document.getElementById("emailInput");
+        const statusMessage = document.getElementById("statusMessage");
+        const subscribeBtn = document.getElementById("subscribeBtn");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        // Show spinner and disable button to prevent multiple clicks
+        loadingSpinner.style.display = "inline-block";
+        subscribeBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append("email", emailInput.value);
+
+        try {
+          const response = await fetch("/subscribe", {
+            method: "POST",
+            body: formData,
+          });
+
+          // Once we get a response, hide the spinner and enable the button again
+          loadingSpinner.style.display = "none";
+          subscribeBtn.disabled = false;
+
+          if (response.ok) {
+            const message = await response.text();
+            statusMessage.textContent = message;
+            statusMessage.style.color = "green";
+            emailInput.value = "";
+          } else if (response.status === 429) {
+            // Rate limit exceeded (if using Flask-Limiter)
+            statusMessage.textContent =
+              "You have made too many requests. Please try again later.";
+            statusMessage.style.color = "red";
+          } else {
+            const errorMessage = await response.text();
+            statusMessage.textContent = `Error: ${errorMessage}`;
+            statusMessage.style.color = "red";
+          }
+        } catch (error) {
+          // Hide spinner, enable button
+          loadingSpinner.style.display = "none";
+          subscribeBtn.disabled = false;
+
+          statusMessage.textContent = "An unexpected error occurred.";
+          statusMessage.style.color = "red";
+        }
+      });
+  </script>
+</body>
+</html>
