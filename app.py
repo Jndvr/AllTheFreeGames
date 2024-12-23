@@ -93,7 +93,7 @@ def send_confirmation_email(to_email: str, unsubscribe_token: str):
         logging.warning("Gmail credentials not provided; skipping confirmation email.")
         return
 
-    subject = "Thank you for subscribing!"
+    subject = "Thank you for subscribing to our Newsletter!"
 
     # Build the unsubscribe link
     # request.url_root is something like 'http://127.0.0.1:5001/'
@@ -106,11 +106,12 @@ def send_confirmation_email(to_email: str, unsubscribe_token: str):
     <html>
       <body style="font-family: Arial, sans-serif;">
         <p>Hello,</p>
-        <p>Thank you for subscribing to our newsletter! We'll keep you updated.</p>
+        <p>Thank you for subscribing to our newsletter! We'll keep you updated about free games!</p>
         <p>
           Best regards,<br>
-          Your Company
+          All the free games
         </p>
+        <p> You did not subscribe to our Newsletter? Just click the Unsubscribe button and you'll never hear from us again! </p>
         <p style="margin-top: 20px;">
           <a
             href="{unsubscribe_url}"
@@ -244,5 +245,4 @@ def unsubscribe(token):
 # 6. Main Entry Point
 # -------------------------------------------------
 if __name__ == "__main__":
-    # IMPORTANT: You changed the port to 5001, so let's keep that consistent
     app.run(debug=True, host="0.0.0.0", port=5001)
