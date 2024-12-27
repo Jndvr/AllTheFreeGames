@@ -24,7 +24,9 @@ from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
 logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Add LOGO_URL to .env
 
+# -------------------------------------------------
 # Firebase Initialization
+# -------------------------------------------------
 def initialize_firebase():
     """
     Initializes Firebase with service account credentials.
@@ -50,17 +52,24 @@ def initialize_firebase():
 
 initialize_firebase()
 
-# Initialize Jinja2 Environment
+# -------------------------------------------------
+# Jinja2 Environment / Template
+# -------------------------------------------------
 env = Environment(
     loader=FileSystemLoader(searchpath="./templates"),
     autoescape=select_autoescape(['html', 'xml'])
 )
 template = env.get_template("newsletter_template.html")
 
-def build_games_html(subscriber_name, unsubscribe_token):
+# -------------------------------------------------
+# Build HTML using Jinja2
+# -------------------------------------------------
+def build_games_html(subscriber_name, confirm_token):
     """
     Reads games from Firestore collection 'prime_free_games'
     and constructs the HTML content for the email using Jinja2.
+    
+    We reuse 'confirm_token' to build the unsubscribe link.
     """
     if not db:
         logging.error("Database is not initialized. Cannot fetch games.")
@@ -79,18 +88,21 @@ def build_games_html(subscriber_name, unsubscribe_token):
         return "<p>No free games found in the database.</p>"
 
     current_year = time.strftime("%Y")
-    unsubscribe_url = f"{base_url}/unsubscribe/{unsubscribe_token}"
+    unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
 
     html = template.render(
         logo_url=logo_url,
         subscriber_name=subscriber_name,
         games=games,
         unsubscribe_url=unsubscribe_url,
+        base_url=base_url,
         current_year=current_year
     )
-
     return html
 
+# -------------------------------------------------
+# Build Plain-Text Version
+# -------------------------------------------------
 def build_games_text():
     """
     Reads games from Firestore collection 'prime_free_games'
@@ -110,15 +122,19 @@ def build_games_text():
 
     return "\n".join(lines) if lines else "No free games found in the database."
 
-def send_newsletter_email(to_email, unsubscribe_token, html_content, text_content):
+# -------------------------------------------------
+# Send the Newsletter Email
+# -------------------------------------------------
+def send_newsletter_email(to_email, confirm_token, html_content, text_content):
     """
     Sends an email with the free games content to the given email address.
+    Reuses 'confirm_token' for unsubscribe link.
     """
     if not gmail_username or not gmail_app_password:
         logging.warning("Gmail credentials are not set. Email sending skipped.")
         return
 
-    subject = "This Week's Free Prime Gaming Offers!"
+    subject = "WeeklyGameVault: This Week's Free Prime Gaming Offers!"
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -142,11 +158,16 @@ def send_newsletter_email(to_email, unsubscribe_token, html_content, text_conten
     except Exception as e:
         logging.error(f"Failed to send newsletter to {to_email}: {e}")
 
+# -------------------------------------------------
+# Main Newsletter Logic
+# -------------------------------------------------
 def run_weekly_newsletter():
     """
     1. Builds the free games HTML and text.
     2. Fetches all subscribers from Firestore.
     3. Sends the newsletter email to each subscriber.
+    
+    We assume 'confirm_token' is used for unsubscribing.
     """
     logging.info("Starting weekly newsletter job...")
     if not db:
@@ -158,16 +179,24 @@ def run_weekly_newsletter():
         for sub in subscribers:
             data = sub.to_dict()
             email = data.get("email")
-            token = data.get("unsubscribe_token", "")
+            # Grab the 'confirm_token' from Firestore
+            confirm_token = data.get("confirm_token", "")
             name = data.get("name", "Subscriber")  # Default to "Subscriber" if name not provided
-            if email:
-                html_content = build_games_html(name, token)
+
+            # Only send if they are confirmed; optionally check 'confirmed' == True
+            if email and confirm_token and data.get("confirmed", False):
+                html_content = build_games_html(name, confirm_token)
                 text_content = build_games_text()
-                send_newsletter_email(email, token, html_content, text_content)
+                send_newsletter_email(email, confirm_token, html_content, text_content)
+            else:
+                logging.info(f"Skipping {email}; either missing token or not confirmed.")
     except Exception as e:
         logging.error(f"Error fetching subscribers: {e}")
 
     logging.info("Weekly newsletter job completed successfully.")
 
+# -------------------------------------------------
+# Entry Point
+# -------------------------------------------------
 if __name__ == "__main__":
     run_weekly_newsletter()

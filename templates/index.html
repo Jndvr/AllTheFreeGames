@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   
   <!-- Primary Meta Tags -->
-  <title>Get All the Free Games!</title>
+  <title>Get WeeklyGameVault Updates!</title>
   <meta
     name="description"
     content="Subscribe to our newsletter to receive the latest free game updates from Prime Gaming, Epic Store, and more!"
@@ -22,9 +22,12 @@
   />
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" 
+    rel="stylesheet"
+  >
 
-  <!-- Font Awesome for Icons -->
+  <!-- Font Awesome for Icons (optional) -->
   <link
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     rel="stylesheet"
@@ -32,15 +35,15 @@
 
   <style>
     body {
-      background-color: #e0e0e0; /* Slightly darker than previous #f2f2f2 for better contrast */
-      color: #2c2c2c; /* Darker text for readability */
+      background-color: #e0e0e0;
+      color: #2c2c2c;
       font-family: 'Roboto', sans-serif;
     }
     .navbar {
       background-color: #ffffff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       padding: 1rem 2rem;
-      z-index: 1000; /* Ensure navbar stays above other elements */
+      z-index: 1000; 
     }
     .navbar-brand {
       font-weight: bold;
@@ -48,18 +51,21 @@
       color: #ff5722 !important;
     }
     .hero-section {
-      background: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center center;
+      background: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') 
+        no-repeat center center;
       background-size: cover;
       padding: 100px 0;
       position: relative;
       color: #ffffff;
       text-align: center;
     }
-    /* Removed hero-overlay */
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      padding: 0 1rem;
+    .hero-section h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0;
+    }
+    .hero-section p {
+      font-size: 1.3rem;
     }
     .subscribe-card {
       background-color: #ffffff;
@@ -87,6 +93,13 @@
       margin-top: 50px;
       box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
     }
+    a.footer-link {
+      color: #6c757d;
+      text-decoration: underline;
+    }
+    a.footer-link:hover {
+      color: #333333;
+    }
     @media (max-width: 768px) {
       .hero-section {
         padding: 80px 0;
@@ -105,7 +118,7 @@
   <nav class="navbar navbar-expand-lg navbar-light fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
-        <i class="fas fa-gamepad me-2"></i>AllTheFreeGames
+        <i class="fas fa-gamepad me-2"></i>WeeklyGameVault
       </a>
       <button
         class="navbar-toggler"
@@ -121,12 +134,15 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#subscribe">Subscribe</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="#about">About</a>
           </li>
-          <!-- Removed Contact link as the contact form is deleted -->
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="#subscribe">Subscribe</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+          
         </ul>
       </div>
     </div>
@@ -134,26 +150,40 @@
 
   <!-- Hero Section -->
   <section class="hero-section d-flex align-items-center justify-content-center">
-    <!-- Removed the hero-overlay and hero-content divs -->
-    <!-- Now, the hero section only displays the background image -->
+    <div>
+      <h1>WeeklyGameVault</h1>
+      <p>Never miss a free game from top platforms!</p>
+    </div>
   </section>
 
   <!-- About Section -->
   <section class="container my-5" id="about">
     <div class="row align-items-center">
       <div class="col-lg-6 mb-4 mb-lg-0">
-        <h3>About AllTheFreeGames</h3>
+        <h3>About WeeklyGameVault</h3>
         <p>
-          AllTheFreeGames is dedicated to bringing you the latest and greatest free games from top gaming platforms. Whether you're a casual gamer or a hardcore enthusiast, our newsletter ensures you never miss out on exciting opportunities to expand your game library without spending a dime.
+          WeeklyGameVault is dedicated to bringing you the latest and greatest free games from top gaming platforms. 
+          Whether you're a casual gamer or a hardcore enthusiast, our newsletter ensures you never miss out on exciting 
+          opportunities to expand your game library without spending a dime.
         </p>
         <ul class="list-unstyled">
-          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Weekly Updates</li>
-          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Everything in one Newsletter</li>
-          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>User-Friendly Interface</li>
+          <li class="mb-2">
+            <i class="fas fa-check-circle text-success me-2"></i>Weekly Updates
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-check-circle text-success me-2"></i>Everything in one Newsletter
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-check-circle text-success me-2"></i>User-Friendly Interface
+          </li>
         </ul>
       </div>
       <div class="col-lg-6">
-        <img src="https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Gaming" class="img-fluid rounded shadow">
+        <img 
+          src="https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          alt="Gaming"
+          class="img-fluid rounded shadow"
+        >
       </div>
     </div>
   </section>
@@ -166,7 +196,7 @@
           <div class="card-body">
             <h2 class="card-title mb-4 text-center">Stay Updated with Our Newsletter</h2>
             <p class="card-text text-center">
-              Don't miss out on the latest free games! Subscribe to receive timely updates and exclusive offers directly to your inbox.
+              Don’t miss out on the latest free games! Subscribe to receive timely updates and exclusive offers directly to your inbox.
             </p>
             
             <form id="newsletterForm">
@@ -182,6 +212,34 @@
                   required
                 />
               </div>
+
+              <!-- Frequency Selection (Required) -->
+              <div class="mb-4">
+                <p class="mb-2" style="font-weight: 500;">How often do you want to receive our newsletter?</p>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="frequency" 
+                    id="weeklyOption" 
+                    value="weekly"
+                    required
+                  >
+                  <label class="form-check-label" for="weeklyOption">Weekly</label>
+                </div>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="radio" 
+                    name="frequency" 
+                    id="newGameOption" 
+                    value="newgame"
+                    required
+                  >
+                  <label class="form-check-label" for="newGameOption">Every time a new game is available</label>
+                </div>
+              </div>
+
               <button type="submit" class="btn btn-primary w-100" id="subscribeBtn">
                 <span
                   class="spinner-border spinner-border-sm me-2"
@@ -207,7 +265,9 @@
   <footer class="footer">
     <div class="container">
       <p>&copy; 2024 FreeGameHub. All rights reserved.</p>
-      <!-- Removed Instagram, Twitter, and Facebook icons -->
+      <p>
+        <a href="/impressum" class="footer-link">Impressum</a>
+      </p>
     </div>
   </footer>
 
@@ -241,8 +301,20 @@
         loadingSpinner.style.display = "inline-block";
         subscribeBtn.disabled = true;
 
+        // Collect form data
         const formData = new FormData();
         formData.append("email", emailInput.value);
+
+        // Append frequency (one of the radio buttons)
+        const frequencyElems = document.getElementsByName("frequency");
+        let selectedFrequency = "";
+        for (let i = 0; i < frequencyElems.length; i++) {
+          if (frequencyElems[i].checked) {
+            selectedFrequency = frequencyElems[i].value;
+            break;
+          }
+        }
+        formData.append("frequency", selectedFrequency);
 
         try {
           const response = await fetch("/subscribe", {
@@ -259,6 +331,8 @@
             statusMessage.textContent = message;
             statusMessage.style.color = "#28a745"; // Green
             emailInput.value = "";
+            // Uncheck the radio buttons
+            frequencyElems.forEach(radio => (radio.checked = false));
           } else if (response.status === 429) {
             // Rate limit exceeded
             statusMessage.textContent =

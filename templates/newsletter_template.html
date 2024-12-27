@@ -12,7 +12,7 @@
     }
     .container {
       width: 90%;
-      max-width: 1000px; /* Increased max-width to accommodate 4 games */
+      max-width: 1000px;
       margin: 20px auto;
       background-color: #ffffff;
       padding: 20px;
@@ -34,7 +34,7 @@
       justify-content: space-between;
     }
     .game {
-      width: 23%; /* Adjusted width for 4 games per row with spacing */
+      width: 23%;
       background-color: #fafafa;
       margin-bottom: 20px;
       border: 1px solid #e0e0e0;
@@ -80,19 +80,26 @@
       color: #777777;
       font-size: 0.9em;
     }
+    .footer a {
+      color: #ff9900; 
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
     @media (max-width: 1200px) {
       .game {
-        width: 31%; /* Three games per row on medium-large screens */
+        width: 31%;
       }
     }
     @media (max-width: 900px) {
       .game {
-        width: 48%; /* Two games per row on small to medium screens */
+        width: 48%;
       }
     }
     @media (max-width: 600px) {
       .game {
-        width: 100%; /* One game per row on extra-small screens */
+        width: 100%;
       }
     }
   </style>
@@ -100,7 +107,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <img src="{{ logo_url }}" alt="Your Company Logo">
+      <img src="{{ logo_url }}" alt="WeeklyGameVault Logo">
     </div>
     <p>Hello,</p>
     <p>Here are the latest free Prime Gaming offers:</p>
@@ -117,8 +124,12 @@
     </div>
     <div class="footer">
       <p>If you wish to unsubscribe, click below:</p>
-      <a href="{{ unsubscribe_url }}" style="color: #ff9900; text-decoration: none;">Unsubscribe</a>
-      <p>&copy; {{ current_year }} All the free games. All rights reserved.</p>
+      <!-- We reuse the confirm_token as 'unsubscribe_url' -->
+      <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+      <p>&copy; {{ current_year }} WeeklyGameVault. All rights reserved.</p>
+      <p>
+        <a href="{{ base_url }}/impressum">Impressum</a>
+      </p>
     </div>
   </div>
 </body>
