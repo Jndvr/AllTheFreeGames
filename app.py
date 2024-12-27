@@ -1,5 +1,3 @@
-# app.py
-
 import os
 import json
 import re
@@ -59,10 +57,9 @@ except Exception as e:
 # -------------------------------------------------
 app = Flask(__name__)
 
-# Set up the limiter
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day"]  # Global default limit (example: 200 requests per day)
+    default_limits=["200 per day"]  # e.g., 200 requests/day globally
 )
 
 EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
@@ -95,13 +92,11 @@ def send_confirmation_email(to_email: str, unsubscribe_token: str):
 
     subject = "Thank you for subscribing to our Newsletter!"
 
-    # Build the unsubscribe link
-    # request.url_root is something like 'http://127.0.0.1:5001/'
-    # but here we only have that in the route. For safety, we can manually build or pass it.
-    # Alternatively, you can store your domain in an env variable. For local dev:
-    unsubscribe_url = f"http://127.0.0.1:5001/unsubscribe/{unsubscribe_token}"
+    # Use BASE_URL env var if deploying on Render (or fallback locally)
+    base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
+    unsubscribe_url = f"{base_url}/unsubscribe/{unsubscribe_token}"
 
-    # Create an HTML email body with an unsubscribe button
+    # Keep your custom text
     html_content = f"""
     <html>
       <body style="font-family: Arial, sans-serif;">
@@ -131,13 +126,11 @@ def send_confirmation_email(to_email: str, unsubscribe_token: str):
     </html>
     """
 
-    # Construct the email as multipart in case you want text + HTML
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"] = from_email
     message["To"] = to_email
 
-    # We can add a plain-text fallback if desired
     text_part = MIMEText(
         "Hello,\n\n"
         "Thank you for subscribing to our newsletter! We'll keep you updated.\n\n"
@@ -148,11 +141,9 @@ def send_confirmation_email(to_email: str, unsubscribe_token: str):
     )
     html_part = MIMEText(html_content, "html", "utf-8")
 
-    # Attach both parts to the message (plain text and HTML)
     message.attach(text_part)
     message.attach(html_part)
 
-    # Send via Gmail SMTP
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.ehlo()
@@ -177,15 +168,15 @@ def home():
 @app.route("/subscribe", methods=["POST"])
 def subscribe():
     """
-    Receive the email, validate it, check duplicates, store, send confirmation.
-    Rate-limited to 5 requests/minute per IP (returns 429 on overload).
+    Rate-limited to 5 requests/minute per IP (429 on overload).
+    Saves email & unsubscribe_token, then sends a confirmation.
     """
     if not db:
         return "Database not initialized. Contact administrator.", 500
 
     email = request.form.get("email", "").strip()
 
-    # Validate email format
+    # Validate
     if not is_valid_email(email):
         logging.info(f"Invalid email format attempted: {email}")
         return "Invalid email address.", 400
@@ -195,10 +186,8 @@ def subscribe():
         logging.info(f"Duplicate email detected: {email}")
         return "That email is already subscribed.", 409
 
-    # Generate an unsubscribe token
+    # Generate token & save
     unsubscribe_token = str(uuid.uuid4())
-
-    # Add to Firestore
     try:
         doc_ref = db.collection("newsletter_subscribers").document()
         doc_ref.set({
@@ -210,21 +199,18 @@ def subscribe():
         logging.error(f"Error writing email to Firestore: {e}")
         return "Internal server error.", 500
 
-    # Send confirmation with unsubscribe button
+    # Send confirmation
     send_confirmation_email(email, unsubscribe_token)
-
     return "Thank you for subscribing!"
 
 @app.route("/unsubscribe/<token>", methods=["GET"])
 def unsubscribe(token):
     """
-    When the user clicks the "Unsubscribe" link/button from the email,
-    we remove (or update) their document in Firestore.
+    Removes the doc with the matching unsubscribe_token from Firestore.
     """
     if not db:
         return "Database not initialized. Contact administrator.", 500
 
-    # Find the document that has this unsubscribe_token
     docs = db.collection("newsletter_subscribers") \
              .where("unsubscribe_token", "==", token) \
              .stream()
@@ -232,7 +218,6 @@ def unsubscribe(token):
     unsubscribed_email = None
     for doc in docs:
         unsubscribed_email = doc.to_dict().get("email")
-        # Remove (delete) their doc from Firestore:
         doc.reference.delete()
         break
 

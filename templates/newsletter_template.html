@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>This Week's Free Prime Gaming Offers!</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 90%;
+      max-width: 1000px; /* Increased max-width to accommodate 4 games */
+      margin: 20px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .header img {
+      max-width: 150px;
+      height: auto;
+    }
+    .games {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .game {
+      width: 23%; /* Adjusted width for 4 games per row with spacing */
+      background-color: #fafafa;
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+    }
+    .game img {
+      width: 100%;
+      height: auto;
+    }
+    .game-details {
+      padding: 15px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .game-title {
+      font-size: 1.1em;
+      margin: 0 0 10px 0;
+      color: #333333;
+    }
+    .claim-button {
+      text-align: center;
+      padding: 10px 0;
+      background-color: #ff9900;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .claim-button:hover {
+      background-color: #e68a00;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      color: #777777;
+      font-size: 0.9em;
+    }
+    @media (max-width: 1200px) {
+      .game {
+        width: 31%; /* Three games per row on medium-large screens */
+      }
+    }
+    @media (max-width: 900px) {
+      .game {
+        width: 48%; /* Two games per row on small to medium screens */
+      }
+    }
+    @media (max-width: 600px) {
+      .game {
+        width: 100%; /* One game per row on extra-small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{ logo_url }}" alt="Your Company Logo">
+    </div>
+    <p>Hello,</p>
+    <p>Here are the latest free Prime Gaming offers:</p>
+    <div class="games">
+      {% for game in games %}
+        <div class="game">
+          <img src="{{ game.imageUrl }}" alt="{{ game.title }}">
+          <div class="game-details">
+            <h3 class="game-title">{{ game.title }}</h3>
+            <a href="{{ game.url }}" class="claim-button">Claim here</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="footer">
+      <p>If you wish to unsubscribe, click below:</p>
+      <a href="{{ unsubscribe_url }}" style="color: #ff9900; text-decoration: none;">Unsubscribe</a>
+      <p>&copy; {{ current_year }} All the free games. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   
   <!-- Primary Meta Tags -->
-  <title>Stay Updated with Our Newsletter</title>
+  <title>Get All the Free Games!</title>
   <meta
     name="description"
-    content="Join our newsletter for the latest updates from the free games at Prime Gaming, Epic Store etc.."
+    content="Subscribe to our newsletter to receive the latest free game updates from Prime Gaming, Epic Store, and more!"
   />
   <meta
     name="keywords"
-    content="Newsletter, Updates, gaming, Email Subscription"
+    content="Newsletter, Gaming Updates, Free Games, Email Subscription, Prime Gaming, Epic Store"
   />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -21,62 +21,170 @@
     rel="stylesheet"
   />
 
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome for Icons -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
+
   <style>
     body {
-      background-color: #f8f9fa; /* Light gray background */
+      background-color: #e0e0e0; /* Slightly darker than previous #f2f2f2 for better contrast */
+      color: #2c2c2c; /* Darker text for readability */
+      font-family: 'Roboto', sans-serif;
     }
-    .message {
-      margin-top: 1rem;
+    .navbar {
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1rem 2rem;
+      z-index: 1000; /* Ensure navbar stays above other elements */
     }
-    /* Optional: style overrides for spinner */
-    .spinner-border {
-      margin-right: 8px; /* spacing between spinner and button text */
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #ff5722 !important;
+    }
+    .hero-section {
+      background: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center center;
+      background-size: cover;
+      padding: 100px 0;
+      position: relative;
+      color: #ffffff;
+      text-align: center;
+    }
+    /* Removed hero-overlay */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 1rem;
+    }
+    .subscribe-card {
+      background-color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 3rem;
+    }
+    .subscribe-card .btn-primary {
+      background-color: #ff5722;
+      border: none;
+      transition: background-color 0.3s ease;
+      padding: 0.75rem;
+      font-size: 1rem;
+    }
+    .subscribe-card .btn-primary:hover {
+      background-color: #e64a19;
+    }
+    .footer {
+      background-color: #ffffff;
+      padding: 1.5rem 0;
+      text-align: center;
+      color: #6c757d;
+      margin-top: 50px;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 80px 0;
+      }
+      .navbar-brand {
+        font-size: 1.2rem;
+      }
+      .subscribe-card {
+        padding: 2rem;
+      }
     }
   </style>
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/">All the free games</a>
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-gamepad me-2"></i>AllTheFreeGames
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+        aria-controls="navbarContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#subscribe">Subscribe</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+          </li>
+          <!-- Removed Contact link as the contact form is deleted -->
+        </ul>
+      </div>
     </div>
   </nav>
 
-  <!-- Main Container -->
-  <div class="container my-5">
-    <!-- Row & Column for responsive layout -->
+  <!-- Hero Section -->
+  <section class="hero-section d-flex align-items-center justify-content-center">
+    <!-- Removed the hero-overlay and hero-content divs -->
+    <!-- Now, the hero section only displays the background image -->
+  </section>
+
+  <!-- About Section -->
+  <section class="container my-5" id="about">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h3>About AllTheFreeGames</h3>
+        <p>
+          AllTheFreeGames is dedicated to bringing you the latest and greatest free games from top gaming platforms. Whether you're a casual gamer or a hardcore enthusiast, our newsletter ensures you never miss out on exciting opportunities to expand your game library without spending a dime.
+        </p>
+        <ul class="list-unstyled">
+          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Weekly Updates</li>
+          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Everything in one Newsletter</li>
+          <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>User-Friendly Interface</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <img src="https://images.unsplash.com/photo-1605902711622-cfb43c4437f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Gaming" class="img-fluid rounded shadow">
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container (Subscribe Section) -->
+  <div class="container my-5" id="subscribe">
     <div class="row justify-content-center">
-      <!-- On extra small screens: col-12 (full width)
-           On medium screens: col-md-8
-           On large screens: col-lg-6 -->
       <div class="col-12 col-md-8 col-lg-6">
-        <div class="subscribe-card card shadow-sm">
+        <div class="subscribe-card card">
           <div class="card-body">
-            <!-- Use an <h1> for your main heading for SEO and semantics -->
-            <h1 class="card-title mb-3">Stay updated with our Newsletter</h1>
-            <p class="card-text">
-              Are you tired of missing all your favorite games that are for free at Prime Gaming, Epic Store etc. ? <br>
-              Subscribe to our newsletter and be the first to know about new games to collect. <br>
-              We value your privacy and ensure your email is kept safe.
+            <h2 class="card-title mb-4 text-center">Stay Updated with Our Newsletter</h2>
+            <p class="card-text text-center">
+              Don't miss out on the latest free games! Subscribe to receive timely updates and exclusive offers directly to your inbox.
             </p>
             
-            <!-- Keep a clear heading for your form as well -->
             <form id="newsletterForm">
-              <div class="mb-3">
+              <div class="mb-4">
+                <label for="emailInput" class="form-label visually-hidden">Email address</label>
                 <input
                   type="email"
                   class="form-control"
                   id="emailInput"
                   name="email"
-                  placeholder="Enter your email address to subscribe"
+                  placeholder="Enter your email address"
+                  aria-describedby="emailHelp"
                   required
                 />
               </div>
-              <!-- Button with embedded spinner -->
-              <button type="submit" class="btn btn-primary" id="subscribeBtn">
-                <!-- Spinner is hidden by default -->
+              <button type="submit" class="btn btn-primary w-100" id="subscribeBtn">
                 <span
-                  class="spinner-border spinner-border-sm"
+                  class="spinner-border spinner-border-sm me-2"
                   role="status"
                   aria-hidden="true"
                   id="loadingSpinner"
@@ -84,7 +192,10 @@
                 ></span>
                 Subscribe
               </button>
-              <p class="message" id="statusMessage"></p>
+              <div class="mt-4 text-center">
+                <small class="text-muted">We respect your privacy. Unsubscribe at any time.</small>
+              </div>
+              <p class="message mt-3 text-center" id="statusMessage"></p>
             </form>
           </div>
         </div>
@@ -92,13 +203,30 @@
     </div>
   </div>
 
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 FreeGameHub. All rights reserved.</p>
+      <!-- Removed Instagram, Twitter, and Facebook icons -->
+    </div>
+  </footer>
+
   <!-- Bootstrap JS (CDN) -->
   <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
   ></script>
 
-  <!-- Custom JS for form submission -->
+  <!-- Font Awesome JS (CDN) -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
+    integrity="sha512-dI0aC5jVvLr4EQenYQbC+BgJ3RzH+d85e9LHZb3MlZmvHjyPP0pEhR1sMVQ+w3rQmTxJWgV+X+UxZ3Gxq6jv2Q=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
+  <!-- Custom JS for form submissions -->
   <script>
+    // Newsletter Form Submission
     document
       .getElementById("newsletterForm")
       .addEventListener("submit", async function (event) {
@@ -129,17 +257,17 @@
           if (response.ok) {
             const message = await response.text();
             statusMessage.textContent = message;
-            statusMessage.style.color = "green";
+            statusMessage.style.color = "#28a745"; // Green
             emailInput.value = "";
           } else if (response.status === 429) {
-            // Rate limit exceeded (if using Flask-Limiter)
+            // Rate limit exceeded
             statusMessage.textContent =
               "You have made too many requests. Please try again later.";
-            statusMessage.style.color = "red";
+            statusMessage.style.color = "#dc3545"; // Red
           } else {
             const errorMessage = await response.text();
             statusMessage.textContent = `Error: ${errorMessage}`;
-            statusMessage.style.color = "red";
+            statusMessage.style.color = "#dc3545"; // Red
           }
         } catch (error) {
           // Hide spinner, enable button
@@ -147,7 +275,7 @@
           subscribeBtn.disabled = false;
 
           statusMessage.textContent = "An unexpected error occurred.";
-          statusMessage.style.color = "red";
+          statusMessage.style.color = "#dc3545"; // Red
         }
       });
   </script>

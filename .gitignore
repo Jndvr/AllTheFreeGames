@@ -1,2 +1,9 @@
 .env
 *.log
+serviceAccountKey.json
+node_modules/
+browser_data/
+screenshots
+graveyard/
+__pycache__/
+page_debug.html
