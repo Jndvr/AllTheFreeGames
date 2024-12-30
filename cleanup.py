@@ -2,10 +2,15 @@ import os
 import json
 import logging
 import datetime
+from datetime import timezone
+import warnings
 
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
+
+# Suppress UserWarnings about Firestore filters
+warnings.filterwarnings("ignore", category=UserWarning)
 
 load_dotenv()
 
@@ -35,15 +40,27 @@ def cleanup_unconfirmed_subscribers():
         logging.error("Database is not initialized. Aborting cleanup.")
         return
 
-    cutoff_time = datetime.datetime.utcnow() - datetime.timedelta(days=7)
-    subscribers_ref = db.collection("newsletter_subscribers") \
-                        .where("confirmed", "==", False) \
-                        .where("createdAt", "<", cutoff_time)
-    docs = subscribers_ref.stream()
+    # Adjusted to use timezone-aware datetime
+    cutoff_time = datetime.datetime.now(timezone.utc) - datetime.timedelta(days=7)
+    deleted_count = 0  # Counter to track the number of deleted documents
 
-    for doc in docs:
-        doc.reference.delete()
-        logging.info(f"Deleted unconfirmed subscriber: {doc.id} (older than 7 days).")
+    try:
+        subscribers_ref = db.collection("newsletter_subscribers")
+        subscribers_ref = subscribers_ref.where("confirmed", "==", False)
+        subscribers_ref = subscribers_ref.where("createdAt", "<", cutoff_time)
+        docs = subscribers_ref.stream()
+
+        for doc in docs:
+            doc.reference.delete()
+            logging.info(f"Deleted unconfirmed subscriber: {doc.id} (older than 7 days).")
+            deleted_count += 1
+
+        if deleted_count == 0:
+            logging.info("No unconfirmed subscribers were found for deletion.")
+        else:
+            logging.info(f"Cleanup completed. Total deleted unconfirmed subscribers: {deleted_count}")
+    except Exception as e:
+        logging.error(f"Error during cleanup: {e}")
 
 if __name__ == "__main__":
     initialize_firebase()

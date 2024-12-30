@@ -1,136 +1,366 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" style="margin:0; padding:0; background-color:#f4f4f4;">
 <head>
-  <meta charset="UTF-8">
-  <title>This Week's Free Prime Gaming Offers!</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      width: 90%;
-      max-width: 1000px;
-      margin: 20px auto;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .header {
-      text-align: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .header img {
-      max-width: 150px;
-      height: auto;
-    }
-    .games {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .game {
-      width: 23%;
-      background-color: #fafafa;
-      margin-bottom: 20px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-    }
-    .game img {
-      width: 100%;
-      height: auto;
-    }
-    .game-details {
-      padding: 15px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .game-title {
-      font-size: 1.1em;
-      margin: 0 0 10px 0;
-      color: #333333;
-    }
-    .claim-button {
-      text-align: center;
-      padding: 10px 0;
-      background-color: #ff9900;
-      color: #ffffff;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-    }
-    .claim-button:hover {
-      background-color: #e68a00;
-    }
-    .footer {
-      text-align: center;
-      padding-top: 20px;
-      border-top: 1px solid #e0e0e0;
-      color: #777777;
-      font-size: 0.9em;
-    }
-    .footer a {
-      color: #ff9900; 
-      text-decoration: none;
-    }
-    .footer a:hover {
-      text-decoration: underline;
-    }
-    @media (max-width: 1200px) {
-      .game {
-        width: 31%;
-      }
-    }
-    @media (max-width: 900px) {
-      .game {
-        width: 48%;
-      }
-    }
-    @media (max-width: 600px) {
-      .game {
-        width: 100%;
-      }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>WeeklyGameVault Newsletter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="{{ logo_url }}" alt="WeeklyGameVault Logo">
-    </div>
-    <p>Hello,</p>
-    <p>Here are the latest free Prime Gaming offers:</p>
-    <div class="games">
-      {% for game in games %}
-        <div class="game">
-          <img src="{{ game.imageUrl }}" alt="{{ game.title }}">
-          <div class="game-details">
-            <h3 class="game-title">{{ game.title }}</h3>
-            <a href="{{ game.url }}" class="claim-button">Claim here</a>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-    <div class="footer">
-      <p>If you wish to unsubscribe, click below:</p>
-      <!-- We reuse the confirm_token as 'unsubscribe_url' -->
-      <a href="{{ unsubscribe_url }}">Unsubscribe</a>
-      <p>&copy; {{ current_year }} WeeklyGameVault. All rights reserved.</p>
-      <p>
-        <a href="{{ base_url }}/impressum">Impressum</a>
-      </p>
-    </div>
-  </div>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
+  <!-- Outer wrapper table (full width) -->
+  <table
+    border="0"
+    cellpadding="0"
+    cellspacing="0"
+    width="100%"
+    style="border-collapse: collapse; background-color: #f4f4f4;"
+  >
+    <tr>
+      <!-- Center the content -->
+      <td align="center" style="padding:20px;">
+        
+        <!-- Main container table (fixed width 600px) -->
+        <table
+          border="0"
+          cellpadding="0"
+          cellspacing="0"
+          width="600"
+          style="
+            border-collapse:collapse;
+            background-color:#ffffff;
+            max-width:600px;
+          "
+        >
+          <!-- Header/Logo row -->
+          <tr>
+            <td align="center" style="padding:20px;">
+              <img
+                src="{{ logo_url }}"
+                alt="WeeklyGameVault Logo"
+                style="display:block; max-width:150px; height:auto;"
+              />
+            </td>
+          </tr>
+
+          <!-- Intro text row -->
+          <tr>
+            <td
+              align="left"
+              style="
+                padding:20px;
+                color:#333333;
+                font-size:16px;
+                line-height:1.5;
+              "
+            >
+              <p style="margin:0 0 10px 0;">Hello,</p>
+              
+              {% set has_prime = games|length > 0 %}
+              {% set has_epic = epic_games|length > 0 %}
+              
+              {% if has_prime or has_epic %}
+                <p style="margin:0 0 10px 0;">
+                  We have new free gaming offers for you. Jump to:
+                  {% if has_prime %}
+                    <a href="#prime-gaming" style="color:#ff9900; text-decoration:underline;">Prime Gaming</a>
+                    {% if has_epic %}
+                      or
+                    {% endif %}
+                  {% endif %}
+                  {% if has_epic %}
+                    <a href="#epic-free" style="color:#ff9900; text-decoration:underline;">Epic Games</a>.
+                  {% endif %}
+                </p>
+              {% endif %}
+            </td>
+          </tr>
+
+          <!-- Prime Gaming section -->
+          {% if has_prime %}
+            <tr>
+              <td align="center" style="padding:0 20px 20px 20px;">
+                <!-- Anchor for Prime Gaming -->
+                <a name="prime-gaming"></a>
+
+                <!-- Header for Prime Gaming -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td
+                      align="left"
+                      style="
+                        padding:0 0 10px 0;
+                        color:#333333;
+                        font-size:16px;
+                        line-height:1.5;
+                        font-weight:bold;
+                      "
+                    >
+                      Here are the latest free Prime Gaming offers:
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Nested table for Prime Gaming offers (3 columns per row) -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  width="100%"
+                  style="border-collapse: collapse;"
+                >
+                  {% set columns = 3 %}
+                  {% set total = games|length %}
+                  {% for i in range(total) %}
+                    {% if i % columns == 0 %}
+                      <tr>
+                    {% endif %}
+
+                    {% set game = games[i] %}
+                    <td
+                      valign="top"
+                      align="center"
+                      style="
+                        width:33.33%;
+                        padding:10px;
+                        border:1px solid #e0e0e0;
+                        background-color:#fafafa;
+                        height:160px;
+                        vertical-align:top;
+                        box-sizing: border-box;
+                      "
+                    >
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        width="100%"
+                        height="100%"
+                        style="border-collapse: collapse;"
+                      >
+                        <tr style="vertical-align: top;">
+                          <td align="center" style="padding:0;">
+                            <img
+                              src="{{ game.imageUrl }}"
+                              alt="{{ game.title }}"
+                              style="
+                                display:block;
+                                width:100%;
+                                height:auto;
+                                border:0;
+                                max-width:100%;
+                              "
+                            />
+                            <p
+                              style="
+                                margin:10px 0 5px;
+                                font-size:14px;
+                                color:#333333;
+                                font-weight:bold;
+                              "
+                            >
+                              {{ game.title }}
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: bottom;">
+                          <td align="center" style="padding:0;">
+                            <a
+                              href="{{ game.url }}"
+                              style="
+                                display:inline-block;
+                                padding:8px 15px;
+                                background-color:#ff9900;
+                                color:#ffffff;
+                                text-decoration:none;
+                                border-radius:4px;
+                                font-size:14px;
+                                font-weight:bold;
+                                margin-top:10px;
+                              "
+                            >
+                              Claim here
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+
+                    {% if (i + 1) % columns == 0 or i == total - 1 %}
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+          <!-- END Prime Gaming section -->
+
+          <!-- Epic Games section -->
+          {% if has_epic %}
+            <tr>
+              <td align="center" style="padding:0 20px 20px 20px;">
+                <!-- Anchor for Epic Games -->
+                <a name="epic-free"></a>
+
+                <!-- Header for Epic Games -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td
+                      align="left"
+                      style="
+                        padding:0 0 10px 0;
+                        color:#333333;
+                        font-size:16px;
+                        line-height:1.5;
+                        font-weight:bold;
+                      "
+                    >
+                      Here are the latest free Epic Games offers:
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Nested table for Epic Games offers (3 columns per row) -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  width="100%"
+                  style="border-collapse: collapse;"
+                >
+                  {% set columns = 3 %}
+                  {% set total_epic = epic_games|length %}
+                  {% for i in range(total_epic) %}
+                    {% if i % columns == 0 %}
+                      <tr>
+                    {% endif %}
+
+                    {% set game = epic_games[i] %}
+                    <td
+                      valign="top"
+                      align="center"
+                      style="
+                        width:33.33%;
+                        padding:10px;
+                        border:1px solid #e0e0e0;
+                        background-color:#fafafa;
+                        height:160px;
+                        vertical-align:top;
+                        box-sizing: border-box;
+                      "
+                    >
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        width="100%"
+                        height="100%"
+                        style="border-collapse: collapse;"
+                      >
+                        <tr style="vertical-align: top;">
+                          <td align="center" style="padding:0;">
+                            <img
+                              src="{{ game.imageUrl }}"
+                              alt="{{ game.title }}"
+                              style="
+                                display:block;
+                                width:100%;
+                                height:auto;
+                                border:0;
+                                max-width:100%;
+                              "
+                            />
+                            <p
+                              style="
+                                margin:10px 0 5px;
+                                font-size:14px;
+                                color:#333333;
+                                font-weight:bold;
+                              "
+                            >
+                              {{ game.title }}
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: bottom;">
+                          <td align="center" style="padding:0;">
+                            <a
+                              href="{{ game.url }}"
+                              style="
+                                display:inline-block;
+                                padding:8px 15px;
+                                background-color:#ff9900;
+                                color:#ffffff;
+                                text-decoration:none;
+                                border-radius:4px;
+                                font-size:14px;
+                                font-weight:bold;
+                                margin-top:10px;
+                              "
+                            >
+                              Claim here
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+
+                    {% if (i + 1) % columns == 0 or i == total_epic - 1 %}
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+          <!-- END Epic Games section -->
+
+          <!-- Footer/Unsubscribe -->
+          <tr>
+            <td
+              align="center"
+              style="
+                padding:20px;
+                color:#777777;
+                font-size:14px;
+                border-top:1px solid #e0e0e0;
+                line-height:1.6;
+              "
+            >
+              <p style="margin:0;">If you wish to unsubscribe, click below:</p>
+              <p style="margin:8px 0;">
+                <a
+                  href="{{ unsubscribe_url }}"
+                  style="
+                    background-color:#ff9900;
+                    color:#ffffff;
+                    text-decoration:none;
+                    padding:10px 20px;
+                    border-radius:4px;
+                    font-weight:bold;
+                  "
+                >
+                  Unsubscribe
+                </a>
+              </p>
+              <p style="margin:0; font-size:12px; color:#999999;">
+                &copy; {{ current_year }} WeeklyGameVault. All rights reserved.
+              </p>
+              <p style="margin:0; font-size:12px; color:#999999;">
+                <a
+                  href="{{ base_url }}/impressum"
+                  style="color:#999999; text-decoration:underline;"
+                >
+                  Impressum
+                </a>
+              </p>
+            </td>
+          </tr>
+        </table>
+        <!-- End main container table -->
+      </td>
+    </tr>
+  </table>
+  <!-- End outer wrapper table -->
 </body>
 </html>

@@ -5,6 +5,7 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
 import firebase_admin
@@ -66,34 +67,55 @@ template = env.get_template("newsletter_template.html")
 # -------------------------------------------------
 def build_games_html(subscriber_name, confirm_token):
     """
-    Reads games from Firestore collection 'prime_free_games'
+    Reads games from Firestore collections 'prime_free_games' and 'epic_free_games'
     and constructs the HTML content for the email using Jinja2.
-    
-    We reuse 'confirm_token' to build the unsubscribe link.
+    Reuses 'confirm_token' to build the unsubscribe link.
     """
+
     if not db:
         logging.error("Database is not initialized. Cannot fetch games.")
         return "<p>No data available.</p>"
 
-    docs = db.collection("prime_free_games").stream()
-    games = []
-    for doc in docs:
+    # Fetch PRIME games
+    prime_docs = db.collection("prime_free_games").stream()
+    prime_games = []
+    for doc in prime_docs:
         data = doc.to_dict()
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        games.append({"title": title, "url": url, "imageUrl": image_url})
+        # Ensure all necessary fields are present
+        if title and url and image_url:
+            prime_games.append({"title": title, "url": url, "imageUrl": image_url})
 
-    if not games:
+    # Fetch EPIC games
+    epic_docs = db.collection("epic_free_games").stream()
+    epic_games = []
+    for doc in epic_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "#")
+        image_url = data.get("imageUrl", "")
+        # Ensure all necessary fields are present
+        if title and url and image_url:
+            epic_games.append({"title": title, "url": url, "imageUrl": image_url})
+
+    # Debugging logs
+    logging.info(f"Found {len(prime_games)} Prime Gaming games.")
+    logging.info(f"Found {len(epic_games)} Epic Games games.")
+
+    if not prime_games and not epic_games:
         return "<p>No free games found in the database.</p>"
 
     current_year = time.strftime("%Y")
     unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
 
+    # Render the template with prime_games and epic_games
     html = template.render(
         logo_url=logo_url,
         subscriber_name=subscriber_name,
-        games=games,
+        games=prime_games,        # existing Jinja variable for prime
+        epic_games=epic_games,    # new Jinja variable for epic
         unsubscribe_url=unsubscribe_url,
         base_url=base_url,
         current_year=current_year
@@ -105,22 +127,44 @@ def build_games_html(subscriber_name, confirm_token):
 # -------------------------------------------------
 def build_games_text():
     """
-    Reads games from Firestore collection 'prime_free_games'
+    Reads games from both 'prime_free_games' and 'epic_free_games'
     and constructs the plain text content for the email.
     """
     if not db:
         logging.error("Database is not initialized. Cannot fetch games.")
         return "No data available."
 
-    docs = db.collection("prime_free_games").stream()
-    lines = []
-    for doc in docs:
+    # PRIME
+    prime_docs = db.collection("prime_free_games").stream()
+    prime_lines = []
+    for doc in prime_docs:
         data = doc.to_dict()
         title = data.get("title", "Unknown Title")
         url = data.get("url", "No URL")
-        lines.append(f"{title}\n  URL: {url}\n")
+        prime_lines.append(f"{title}\n  URL: {url}\n")
 
-    return "\n".join(lines) if lines else "No free games found in the database."
+    # EPIC
+    epic_docs = db.collection("epic_free_games").stream()
+    epic_lines = []
+    for doc in epic_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "No URL")
+        epic_lines.append(f"{title}\n  URL: {url}\n")
+
+    text_parts = []
+
+    if prime_lines:
+        text_parts.append("Prime Gaming Offers:\n" + "\n".join(prime_lines))
+    else:
+        text_parts.append("Prime Gaming Offers:\n(No new Prime games found)\n")
+
+    if epic_lines:
+        text_parts.append("Epic Games Offers:\n" + "\n".join(epic_lines))
+    else:
+        text_parts.append("Epic Games Offers:\n(No new Epic games found)\n")
+
+    return "\n".join(text_parts)
 
 # -------------------------------------------------
 # Send the Newsletter Email
@@ -134,7 +178,7 @@ def send_newsletter_email(to_email, confirm_token, html_content, text_content):
         logging.warning("Gmail credentials are not set. Email sending skipped.")
         return
 
-    subject = "WeeklyGameVault: This Week's Free Prime Gaming Offers!"
+    subject = "WeeklyGameVault: This Week's Gaming Offers!"
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -163,11 +207,9 @@ def send_newsletter_email(to_email, confirm_token, html_content, text_content):
 # -------------------------------------------------
 def run_weekly_newsletter():
     """
-    1. Builds the free games HTML and text.
-    2. Fetches all subscribers from Firestore.
-    3. Sends the newsletter email to each subscriber.
-    
-    We assume 'confirm_token' is used for unsubscribing.
+    1. Builds the free games HTML and text (Prime + Epic).
+    2. Fetches all subscribers who have frequency in ["weekly", "both"] and confirmed == True.
+    3. Sends the newsletter email to each matching subscriber.
     """
     logging.info("Starting weekly newsletter job...")
     if not db:
@@ -175,21 +217,25 @@ def run_weekly_newsletter():
         return
 
     try:
-        subscribers = db.collection("newsletter_subscribers").stream()
+        # Only get subscribers who want weekly or both, and are confirmed
+        subscribers = db.collection("newsletter_subscribers") \
+                        .where("frequency", "in", ["weekly", "both"]) \
+                        .where("confirmed", "==", True) \
+                        .stream()
+
         for sub in subscribers:
             data = sub.to_dict()
             email = data.get("email")
-            # Grab the 'confirm_token' from Firestore
             confirm_token = data.get("confirm_token", "")
-            name = data.get("name", "Subscriber")  # Default to "Subscriber" if name not provided
+            name = data.get("name", "Subscriber")  # Default to "Subscriber" if not provided
 
-            # Only send if they are confirmed; optionally check 'confirmed' == True
-            if email and confirm_token and data.get("confirmed", False):
-                html_content = build_games_html(name, confirm_token)
-                text_content = build_games_text()
-                send_newsletter_email(email, confirm_token, html_content, text_content)
-            else:
-                logging.info(f"Skipping {email}; either missing token or not confirmed.")
+            # Build the HTML & text for each subscriber
+            html_content = build_games_html(name, confirm_token)
+            text_content = build_games_text()
+
+            # Send the email
+            send_newsletter_email(email, confirm_token, html_content, text_content)
+
     except Exception as e:
         logging.error(f"Error fetching subscribers: {e}")
 

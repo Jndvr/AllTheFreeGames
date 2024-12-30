@@ -7,7 +7,7 @@
   <title>Get WeeklyGameVault Updates!</title>
   <meta
     name="description"
-    content="Subscribe to our newsletter to receive the latest free game updates from Prime Gaming, Epic Store, and more!"
+    content="Subscribe to our newsletter to receive the latest game updates from Prime Gaming, Epic Store, and more!"
   />
   <meta
     name="keywords"
@@ -56,7 +56,7 @@
       background-size: cover;
       padding: 100px 0;
       position: relative;
-      color: #ffffff;
+      color: #ff5722;
       text-align: center;
     }
     .hero-section h1 {
@@ -152,7 +152,7 @@
   <section class="hero-section d-flex align-items-center justify-content-center">
     <div>
       <h1>WeeklyGameVault</h1>
-      <p>Never miss a free game from top platforms!</p>
+      <p>Your Weekly treasure of gaming gems.</p>
     </div>
   </section>
 
@@ -194,9 +194,9 @@
       <div class="col-12 col-md-8 col-lg-6">
         <div class="subscribe-card card">
           <div class="card-body">
-            <h2 class="card-title mb-4 text-center">Stay Updated with Our Newsletter</h2>
+            <h2 class="card-title mb-4 text-center">Stay Updated with our Newsletter</h2>
             <p class="card-text text-center">
-              Don’t miss out on the latest free games! Subscribe to receive timely updates and exclusive offers directly to your inbox.
+              Don’t miss out on the latest free games! Subscribe to receive timely updates directly to your inbox.
             </p>
             
             <form id="newsletterForm">
@@ -216,7 +216,10 @@
               <!-- Frequency Selection (Required) -->
               <div class="mb-4">
                 <p class="mb-2" style="font-weight: 500;">How often do you want to receive our newsletter?</p>
-                <div class="form-check">
+                <!-- 
+                  Use form-check-inline to align side by side
+                -->
+                <div class="form-check form-check-inline">
                   <input 
                     class="form-check-input" 
                     type="radio" 
@@ -227,7 +230,7 @@
                   >
                   <label class="form-check-label" for="weeklyOption">Weekly</label>
                 </div>
-                <div class="form-check">
+                <div class="form-check form-check-inline">
                   <input 
                     class="form-check-input" 
                     type="radio" 
@@ -237,6 +240,17 @@
                     required
                   >
                   <label class="form-check-label" for="newGameOption">Every time a new game is available</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="frequency"
+                    id="bothOption"
+                    value="both"
+                    required
+                  >
+                  <label class="form-check-label" for="bothOption">Both</label>
                 </div>
               </div>
 
@@ -264,7 +278,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2024 FreeGameHub. All rights reserved.</p>
+      <p>&copy; 2024 WeeklyGameVault. All rights reserved.</p>
       <p>
         <a href="/impressum" class="footer-link">Impressum</a>
       </p>

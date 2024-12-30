@@ -1,14 +1,20 @@
-# crawler.py
-
 import asyncio
 import os
 import re
 import json
+from datetime import datetime, timezone  # <-- Import datetime for createdAt
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import firebase_admin
 from firebase_admin import credentials, firestore
 from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list
 from dotenv import load_dotenv
+
+# ----- NEW: stealth import
+try:
+    from playwright_stealth import stealth_async
+except ImportError:
+    print("playwright-stealth is not installed. Run: pip install playwright-stealth")
+    stealth_async = None
 
 # Load environment variables from .env file
 load_dotenv()
@@ -94,6 +100,11 @@ async def scrape_prime_gaming():
             timeout=CFG['timeout']
         )
         page = browser.pages[0] if browser.pages else await browser.new_page()
+
+        # ----- NEW: Apply stealth if available
+        if stealth_async:
+            await stealth_async(page)
+
         await page.set_viewport_size({'width': CFG['width'], 'height': CFG['height']})
 
         notify_games = []
@@ -117,7 +128,7 @@ async def scrape_prime_gaming():
                 await page.wait_for_selector(free_games_button_selector, timeout=CFG['timeout'])
                 await page.click(free_games_button_selector)
                 print('Clicked "Free Games" button.')
-            except PlaywrightTimeoutError:
+            except TimeoutError:
                 print('Free Games button not found.')
                 return
 
@@ -126,7 +137,7 @@ async def scrape_prime_gaming():
             try:
                 await page.wait_for_selector(games_list_selector, timeout=CFG['timeout'])
                 print('Free games list loaded.')
-            except PlaywrightTimeoutError:
+            except TimeoutError:
                 print('Free games list not loaded.')
                 return
 
@@ -148,7 +159,7 @@ async def scrape_prime_gaming():
                 try:
                     title = await title_element.inner_text(timeout=5000)
                     title = title.strip()
-                except PlaywrightTimeoutError:
+                except TimeoutError:
                     title = 'Unknown Title'
                     print(f"Failed to extract title for game at index {i}.")
 
@@ -176,44 +187,47 @@ async def scrape_prime_gaming():
                     image_url = 'No Image Found'
                     print(f"Failed to extract image URL for game at index {i}: {e}")
 
-                # Log and capture screenshot if title extraction failed
-                if title == 'Unknown Title':
-                    game_html = await game.inner_html()
-                    print(f"Game at index {i} has an unknown title. Game HTML: {game_html}")
-
-                    # Capture a screenshot of the problematic game element
-                    screenshot_path = resolve_path(
-                        CFG['screenshots_dir'],
-                        f"unknown_title_{sanitize(get_current_datetime())}_game_{i}.png"
-                    )
-                    await game.screenshot(path=screenshot_path, full_page=True)
-                    print(f"Screenshot saved for game at index {i}: {screenshot_path}")
-
                 games_data.append({'title': title, 'url': url, 'imageUrl': image_url})
 
             print(f"Extracted data for {len(games_data)} games.")
             print('Sample games data:', games_data[:5])
 
             # Update Firestore with new game list
-            collection_ref = db.collection('prime_free_games')  # Updated collection name
+            collection_ref = db.collection('prime_free_games')
             existing_games_snapshot = collection_ref.stream()
-
             existing_games = {}
             for doc in existing_games_snapshot:
                 existing_games[doc.id] = doc.to_dict()
 
             # Add or update games
             for game in games_data:
+                # -- NEW: Skip if invalid (Unknown Title, No URL, No Image)
+                if (
+                    game['title'] == 'Unknown Title'
+                    and game['url'] == 'No URL Found'
+                    and game['imageUrl'] == 'No Image Found'
+                ):
+                    print(f"Skipping invalid game data: {game}")
+                    continue
+
                 # Use the game ID from the URL for uniqueness
                 url_match = re.search(r'/games/(.+?)(?:\?|$)', game['url'])
-                game_id = sanitize(url_match.group(1)) if url_match else sanitize(game['title'].replace(' ', '_').lower())
+                game_id = None
+                if url_match:
+                    game_id = sanitize(url_match.group(1))
+                else:
+                    # fallback to title-based ID
+                    game_id = sanitize(game['title'].replace(' ', '_').lower())
 
                 if game_id not in existing_games:
                     print(f"Adding new game: {game['title']}")
+                    # set createdAt so newsletter_new_games.py can do .where("createdAt", ">", last_run_time)
+                    game['createdAt'] = datetime.now(timezone.utc)
                     collection_ref.document(game_id).set(game)
                     notify_games.append(game)
                 else:
                     print(f"Game already exists: {game['title']}")
+                    # Remove from existing_games so we don't delete it below
                     del existing_games[game_id]
 
             # Remove games no longer free
@@ -231,7 +245,7 @@ async def scrape_prime_gaming():
             await page.screenshot(path=final_screenshot_path, full_page=True)
             print(f"Screenshot saved to {final_screenshot_path}")
 
-            # Optionally, send a notification email with the list of new games including images
+            # Optionally, send a notification email with the list of new games
             if notify_games:
                 email_content = html_game_list(notify_games)
                 await asyncio.to_thread(send_email, 'Prime Gaming Scraper Notification', email_content)
