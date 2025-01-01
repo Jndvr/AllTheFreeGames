@@ -26,44 +26,92 @@
   />
 
   <style>
+    :root {
+      --navbar-height: 80px; /* Define a variable for navbar height */
+    }
+
+    /* Flexbox Layout */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       background-color: #e0e0e0;
       color: #2c2c2c;
       font-family: 'Roboto', sans-serif;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--navbar-height); /* Added padding to prevent navbar overlap */
     }
+
+    html {
+      scroll-padding-top: var(--navbar-height); /* Ensures in-page links are scrolled correctly */
+      scroll-behavior: smooth; /* Enables smooth scrolling */
+    }
+
     .navbar {
       background-color: #ffffff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 1rem 2rem;
+      padding: 1.5rem 2rem; /* Increased padding for better spacing */
       z-index: 1000;
+      height: var(--navbar-height); /* Ensure navbar height matches the variable */
     }
+
     .navbar-brand {
       font-weight: bold;
       font-size: 1.5rem;
       color: #ff5722 !important;
     }
+
+    /* Main Content */
+    main {
+      flex: 1; /* Allows main to grow and push footer down */
+      padding: 20px;
+    }
+
     .form-container {
       background-color: #ffffff;
-      margin: 80px auto;
+      margin: 20px auto; /* Reduced top margin */
       max-width: 600px;
-      padding: 2rem;
+      padding: 1.5rem; /* Reduced padding for slimmer appearance */
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+
+    /* Slimmer Footer */
     .footer {
       background-color: #ffffff;
-      padding: 1.5rem 0;
+      padding: 0.5rem 0; /* Reduced padding */
       text-align: center;
       color: #6c757d;
-      margin-top: 50px;
       box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
     }
-    a.footer-link {
+
+    .footer p {
+      margin: 0.25rem 0; /* Reduced margins */
+      font-size: 0.9rem;  /* Slightly smaller font size for a slimmer look */
+    }
+
+    .footer a.footer-link {
       color: #6c757d;
       text-decoration: underline;
+      font-size: 0.9rem; /* Consistent font size with footer text */
     }
-    a.footer-link:hover {
+
+    .footer a.footer-link:hover {
       color: #333333;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .navbar-brand {
+        font-size: 1.2rem;
+      }
+      .form-container {
+        padding: 1rem;
+      }
     }
   </style>
 </head>
@@ -107,51 +155,53 @@
     </div>
   </nav>
 
-  <!-- Contact Form Section -->
-  <div class="form-container">
-    <h2>Contact Us</h2>
-    <p>If you have any questions, feel free to reach out to us using the form below.</p>
+  <!-- Main Content -->
+  <main>
+    <div class="form-container">
+      <h2>Contact Us</h2>
+      <p>If you have any questions, feel free to reach out to us using the form below.</p>
 
-    <form action="/contact" method="POST">
-      <div class="mb-3">
-        <label for="nameInput" class="form-label">Name</label>
-        <input
-          type="text"
-          class="form-control"
-          id="nameInput"
-          name="name"
-          required
-        />
-      </div>
-      <div class="mb-3">
-        <label for="emailInput" class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          id="emailInput"
-          name="email"
-          required
-        />
-      </div>
-      <div class="mb-3">
-        <label for="messageInput" class="form-label">Message</label>
-        <textarea
-          class="form-control"
-          id="messageInput"
-          name="message"
-          rows="5"
-          required
-        ></textarea>
-      </div>
+      <form action="/contact" method="POST">
+        <div class="mb-3">
+          <label for="nameInput" class="form-label">Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="nameInput"
+            name="name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="emailInput" class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="emailInput"
+            name="email"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="messageInput" class="form-label">Message</label>
+          <textarea
+            class="form-control"
+            id="messageInput"
+            name="message"
+            rows="5"
+            required
+          ></textarea>
+        </div>
 
-      <!-- Google reCAPTCHA v2 checkbox -->
-      <div class="mb-3">
-        <div class="g-recaptcha" data-sitekey="6LfnWKcqAAAAAF8WH3j_2iAjQ-bVYRG8pXRz04HX"></div>
-      </div>
+        <!-- Google reCAPTCHA v2 checkbox -->
+        <div class="mb-3">
+          <div class="g-recaptcha" data-sitekey="6LfnWKcqAAAAAF8WH3j_2iAjQ-bVYRG8pXRz04HX"></div>
+        </div>
 
-      <button type="submit" class="btn btn-primary">Send Message</button>
-    </form>
-  </div>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </form>
+    </div>
+  </main>
 
   <!-- Footer -->
   <footer class="footer">
