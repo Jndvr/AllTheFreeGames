@@ -180,10 +180,10 @@ def home():
     """Render the home page with an email subscription form."""
     return render_template("index.html")
 
-@app.route("/LegalNotice", methods=["GET"])
+@app.route("/PrivacyPolicy", methods=["GET"])
 def impressum():
     """Render the Impressum page."""
-    return render_template("LegalNotice.html")
+    return render_template("PrivacyPolicy.html")
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():

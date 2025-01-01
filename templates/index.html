@@ -153,6 +153,17 @@
         padding: 2rem;
       }
     }
+
+      /* Hover effect for social media icons */
+  .footer .social-icons a.footer-link i {
+    color: #6c757d; /* Default icon color */
+    transition: color 0.3s ease;
+  }
+
+  .footer .social-icons a.footer-link:hover i {
+    color: #0e76a8; /* LinkedIn's brand color */
+  }
+
   </style>
 </head>
 <body>
@@ -315,13 +326,21 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="container">
+    <div class="container d-flex flex-column align-items-center">
       <p>&copy; 2024 WeeklyGameVault. All rights reserved.</p>
       <p>
-        <a href="/LegalNotice" class="footer-link">Legal Notice & Privacy Policy</a>
+        <a href="/PrivacyPolicy" class="footer-link">Privacy Policy</a>
       </p>
+      <!-- Social Media Icons 
+      <div class="social-icons mt-2">
+        <a href="https://www.linkedin.com/in/janduever/" target="_blank" class="footer-link me-3" aria-label="LinkedIn">
+          <i class="fab fa-linkedin fa-lg"></i>
+        </a>
+        Social Media Icons End -->
+      </div>
     </div>
   </footer>
+  
 
   <!-- Bootstrap JS (CDN) -->
   <script
