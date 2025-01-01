@@ -1,3 +1,5 @@
+#will run once per day to clean up mails that are not confirmed within a week
+
 import os
 import json
 import logging

@@ -53,10 +53,6 @@ def send_email(subject, content):
     - TO_EMAIL: The recipient's email address.
     - GMAIL_USERNAME: Your Gmail username (usually your email address).
     - GMAIL_APP_PASSWORD: Your Gmail App Password.
-    
-    Notes:
-    - Ensure that 'Less secure app access' is enabled for your Gmail account or use an App Password.
-    - Do not hardcode credentials; always use environment variables for security.
     """
     from_email = os.getenv('FROM_EMAIL')
     to_email = os.getenv('TO_EMAIL')  # Changed to separate 'TO_EMAIL'
