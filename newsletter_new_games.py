@@ -22,7 +22,7 @@ gmail_username = os.getenv("GMAIL_USERNAME", "")
 gmail_app_password = os.getenv("GMAIL_APP_PASSWORD", "")
 from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
-logo_url = os.getenv("LOGO_URL", "https://example.com/weeklygamevault_logo.png")
+logo_url = os.getenv("LOGO_URL", "https://example.com/weeklygamevault_logo.png")  # Ensure LOGO_URL is set in .env
 
 def initialize_firebase():
     global db
@@ -80,12 +80,12 @@ def update_last_run_time(new_time):
 
 def build_new_games_list(last_run_time):
     """
-    Query 'prime_free_games' and 'epic_free_games' for docs with createdAt > last_run_time.
-    Return a dictionary with lists of newly added prime and epic games.
+    Query 'prime_free_games', 'epic_free_games', and 'gog_free_games' for docs with createdAt > last_run_time.
+    Return a dictionary with lists of newly added prime, epic, and gog games.
     """
     if not db:
         logging.error("DB not initialized. Aborting.")
-        return {"prime_games": [], "epic_games": []}
+        return {"prime_games": [], "epic_games": [], "gog_games": []}
 
     # Fetch new Prime games
     new_prime_query = db.collection("prime_free_games").where("createdAt", ">", last_run_time)
@@ -115,18 +115,34 @@ def build_new_games_list(last_run_time):
         if title and url and image_url:
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
+    # Fetch new GOG games
+    new_gog_query = db.collection("gog_free_games").where("createdAt", ">", last_run_time)
+    gog_docs = new_gog_query.stream()
+
+    gog_games = []
+    for doc in gog_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "#")
+        image_url = data.get("imageUrl", "")
+        # Ensure all necessary fields are present
+        if title and url and image_url:
+            gog_games.append({"title": title, "url": url, "imageUrl": image_url})
+
     # Debugging logs
     logging.info(f"Found {len(prime_games)} new Prime Gaming games.")
     logging.info(f"Found {len(epic_games)} new Epic Games games.")
+    logging.info(f"Found {len(gog_games)} new GOG games.")
 
-    return {"prime_games": prime_games, "epic_games": epic_games}
+    return {"prime_games": prime_games, "epic_games": epic_games, "gog_games": gog_games}
 
 def build_text_list(new_games):
     """
-    Build a plain-text version for the email body, including both Prime and Epic games.
+    Build a plain-text version for the email body, including Prime, Epic, and GOG games.
     """
     prime_games = new_games.get("prime_games", [])
     epic_games = new_games.get("epic_games", [])
+    gog_games = new_games.get("gog_games", [])
 
     lines = []
 
@@ -139,6 +155,11 @@ def build_text_list(new_games):
         lines.append("Epic Games Offers:\n" + "\n".join([f"{g['title']}\n  URL: {g['url']}" for g in epic_games]))
     else:
         lines.append("Epic Games Offers:\n(No new Epic games found)\n")
+
+    if gog_games:
+        lines.append("GOG Offers:\n" + "\n".join([f"{g['title']}\n  URL: {g['url']}" for g in gog_games]))
+    else:
+        lines.append("GOG Offers:\n(No new GOG games found)\n")
 
     return "\n".join(lines)
 
@@ -172,7 +193,7 @@ def send_new_games_email(to_email, confirm_token, html_content, text_content):
 def run_new_games_newsletter():
     """
     1) Grab last_run_time from Firestore (config/newGamesNewsletter).
-    2) Query prime_free_games and epic_free_games with createdAt > last_run_time.
+    2) Query prime_free_games, epic_free_games, and gog_free_games with createdAt > last_run_time.
     3) Send the newsletter only to subscribers with frequency in ["newgame", "both"] AND confirmed = True.
     4) If we send to at least one subscriber, update last_run_time to now.
     """
@@ -187,7 +208,7 @@ def run_new_games_newsletter():
 
     # 2) Build new games list
     new_games = build_new_games_list(last_run_time)
-    if not new_games["prime_games"] and not new_games["epic_games"]:
+    if not new_games["prime_games"] and not new_games["epic_games"] and not new_games["gog_games"]:
         logging.info("No newly added games found since last_run_time. Exiting.")
         return
 
@@ -219,6 +240,7 @@ def run_new_games_newsletter():
             subscriber_name=name,
             games=new_games["prime_games"],
             epic_games=new_games["epic_games"],
+            gog_games=new_games["gog_games"],  # Pass GOG games to template
             unsubscribe_url=unsubscribe_url,
             base_url=base_url,
             current_year=current_year

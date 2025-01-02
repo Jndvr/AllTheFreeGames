@@ -23,7 +23,7 @@ gmail_username = os.getenv("GMAIL_USERNAME", "")
 gmail_app_password = os.getenv("GMAIL_APP_PASSWORD", "")
 from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
-logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Add LOGO_URL to .env
+logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Ensure LOGO_URL is set in .env
 
 # -------------------------------------------------
 # Firebase Initialization
@@ -67,7 +67,7 @@ template = env.get_template("newsletter_template.html")
 # -------------------------------------------------
 def build_games_html(subscriber_name, confirm_token):
     """
-    Reads games from Firestore collections 'prime_free_games' and 'epic_free_games'
+    Reads games from Firestore collections 'prime_free_games', 'epic_free_games', and 'gog_free_games'
     and constructs the HTML content for the email using Jinja2.
     Reuses 'confirm_token' to build the unsubscribe link.
     """
@@ -100,22 +100,36 @@ def build_games_html(subscriber_name, confirm_token):
         if title and url and image_url:
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
+    # Fetch GOG games
+    gog_docs = db.collection("gog_free_games").stream()
+    gog_games = []
+    for doc in gog_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "#")
+        image_url = data.get("imageUrl", "")
+        # Ensure all necessary fields are present
+        if title and url and image_url:
+            gog_games.append({"title": title, "url": url, "imageUrl": image_url})
+
     # Debugging logs
     logging.info(f"Found {len(prime_games)} Prime Gaming games.")
     logging.info(f"Found {len(epic_games)} Epic Games games.")
+    logging.info(f"Found {len(gog_games)} GOG games.")
 
-    if not prime_games and not epic_games:
+    if not prime_games and not epic_games and not gog_games:
         return "<p>No free games found in the database.</p>"
 
     current_year = time.strftime("%Y")
     unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
 
-    # Render the template with prime_games and epic_games
+    # Render the template with prime_games, epic_games, and gog_games
     html = template.render(
         logo_url=logo_url,
         subscriber_name=subscriber_name,
         games=prime_games,        # existing Jinja variable for prime
-        epic_games=epic_games,    # new Jinja variable for epic
+        epic_games=epic_games,    # existing Jinja variable for epic
+        gog_games=gog_games,      # new Jinja variable for GOG
         unsubscribe_url=unsubscribe_url,
         base_url=base_url,
         current_year=current_year
@@ -127,7 +141,7 @@ def build_games_html(subscriber_name, confirm_token):
 # -------------------------------------------------
 def build_games_text():
     """
-    Reads games from both 'prime_free_games' and 'epic_free_games'
+    Reads games from 'prime_free_games', 'epic_free_games', and 'gog_free_games'
     and constructs the plain text content for the email.
     """
     if not db:
@@ -152,6 +166,15 @@ def build_games_text():
         url = data.get("url", "No URL")
         epic_lines.append(f"{title}\n  URL: {url}\n")
 
+    # GOG
+    gog_docs = db.collection("gog_free_games").stream()
+    gog_lines = []
+    for doc in gog_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "No URL")
+        gog_lines.append(f"{title}\n  URL: {url}\n")
+
     text_parts = []
 
     if prime_lines:
@@ -163,6 +186,11 @@ def build_games_text():
         text_parts.append("Epic Games Offers:\n" + "\n".join(epic_lines))
     else:
         text_parts.append("Epic Games Offers:\n(No new Epic games found)\n")
+
+    if gog_lines:
+        text_parts.append("GOG Offers:\n" + "\n".join(gog_lines))
+    else:
+        text_parts.append("GOG Offers:\n(No new GOG games found)\n")
 
     return "\n".join(text_parts)
 
@@ -207,7 +235,7 @@ def send_newsletter_email(to_email, confirm_token, html_content, text_content):
 # -------------------------------------------------
 def run_weekly_newsletter():
     """
-    1. Builds the free games HTML and text (Prime + Epic).
+    1. Builds the free games HTML and text (Prime + Epic + GOG).
     2. Fetches all subscribers who have frequency in ["weekly", "both"] and confirmed == True.
     3. Sends the newsletter email to each matching subscriber.
     """

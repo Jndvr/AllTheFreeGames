@@ -19,16 +19,16 @@
       <!-- Center the content -->
       <td align="center" style="padding:20px;">
         
-        <!-- Main container table (fixed width 600px) -->
+        <!-- Main container table (fixed width 800px) -->
         <table
           border="0"
           cellpadding="0"
           cellspacing="0"
-          width="600"
+          width="800"
           style="
             border-collapse:collapse;
             background-color:#ffffff;
-            max-width:600px;
+            max-width:800px;
           "
         >
           <!-- Header/Logo row -->
@@ -37,7 +37,7 @@
               <img
                 src="{{ logo_url }}"
                 alt="WeeklyGameVault Logo"
-                style="display:block; max-width:150px; height:auto;"
+                style="display:block; max-width:200px; height:auto;"
               />
             </td>
           </tr>
@@ -49,26 +49,33 @@
               style="
                 padding:20px;
                 color:#333333;
-                font-size:16px;
-                line-height:1.5;
+                font-size:18px;
+                line-height:1.6;
               "
             >
-              <p style="margin:0 0 10px 0;">Hello,</p>
+              <p style="margin:0 0 15px 0;">Hello,</p>
               
               {% set has_prime = games|length > 0 %}
               {% set has_epic = epic_games|length > 0 %}
+              {% set has_gog = gog_games|length > 0 %}
               
-              {% if has_prime or has_epic %}
-                <p style="margin:0 0 10px 0;">
+              {% if has_prime or has_epic or has_gog %}
+                <p style="margin:0 0 15px 0;">
                   We have new free gaming offers for you. Jump to:
                   {% if has_prime %}
                     <a href="#prime-gaming" style="color:#ff9900; text-decoration:underline;">Prime Gaming</a>
-                    {% if has_epic %}
-                      or
+                    {% if has_epic or has_gog %}
+                      , 
                     {% endif %}
                   {% endif %}
                   {% if has_epic %}
-                    <a href="#epic-free" style="color:#ff9900; text-decoration:underline;">Epic Games</a>.
+                    <a href="#epic-free" style="color:#ff9900; text-decoration:underline;">Epic Games</a>
+                    {% if has_gog %}
+                      , and 
+                    {% endif %}
+                  {% endif %}
+                  {% if has_gog %}
+                    <a href="#gog-free" style="color:#ff9900; text-decoration:underline;">GOG</a>.
                   {% endif %}
                 </p>
               {% endif %}
@@ -78,7 +85,7 @@
           <!-- Prime Gaming section -->
           {% if has_prime %}
             <tr>
-              <td align="center" style="padding:0 20px 20px 20px;">
+              <td align="center" style="padding:0 30px 30px 30px;">
                 <!-- Anchor for Prime Gaming -->
                 <a name="prime-gaming"></a>
 
@@ -88,10 +95,10 @@
                     <td
                       align="left"
                       style="
-                        padding:0 0 10px 0;
+                        padding:0 0 15px 0;
                         color:#333333;
-                        font-size:16px;
-                        line-height:1.5;
+                        font-size:18px;
+                        line-height:1.6;
                         font-weight:bold;
                       "
                     >
@@ -100,7 +107,7 @@
                   </tr>
                 </table>
 
-                <!-- Nested table for Prime Gaming offers (3 columns per row) -->
+                <!-- Nested table for Prime Gaming offers (4 columns per row) -->
                 <table
                   border="0"
                   cellpadding="0"
@@ -108,7 +115,7 @@
                   width="100%"
                   style="border-collapse: collapse;"
                 >
-                  {% set columns = 3 %}
+                  {% set columns = 4 %}
                   {% set total = games|length %}
                   {% for i in range(total) %}
                     {% if i % columns == 0 %}
@@ -120,11 +127,11 @@
                       valign="top"
                       align="center"
                       style="
-                        width:33.33%;
+                        width:25%;
                         padding:10px;
                         border:1px solid #e0e0e0;
                         background-color:#fafafa;
-                        height:160px;
+                        height:200px;
                         vertical-align:top;
                         box-sizing: border-box;
                       "
@@ -152,8 +159,8 @@
                             />
                             <p
                               style="
-                                margin:10px 0 5px;
-                                font-size:14px;
+                                margin:15px 0 10px;
+                                font-size:16px;
                                 color:#333333;
                                 font-weight:bold;
                               "
@@ -168,12 +175,12 @@
                               href="{{ game.url }}"
                               style="
                                 display:inline-block;
-                                padding:8px 15px;
+                                padding:10px 20px;
                                 background-color:#ff9900;
                                 color:#ffffff;
                                 text-decoration:none;
                                 border-radius:4px;
-                                font-size:14px;
+                                font-size:16px;
                                 font-weight:bold;
                                 margin-top:10px;
                               "
@@ -198,7 +205,7 @@
           <!-- Epic Games section -->
           {% if has_epic %}
             <tr>
-              <td align="center" style="padding:0 20px 20px 20px;">
+              <td align="center" style="padding:0 30px 30px 30px;">
                 <!-- Anchor for Epic Games -->
                 <a name="epic-free"></a>
 
@@ -208,10 +215,10 @@
                     <td
                       align="left"
                       style="
-                        padding:0 0 10px 0;
+                        padding:0 0 15px 0;
                         color:#333333;
-                        font-size:16px;
-                        line-height:1.5;
+                        font-size:18px;
+                        line-height:1.6;
                         font-weight:bold;
                       "
                     >
@@ -220,7 +227,7 @@
                   </tr>
                 </table>
 
-                <!-- Nested table for Epic Games offers (3 columns per row) -->
+                <!-- Nested table for Epic Games offers (4 columns per row) -->
                 <table
                   border="0"
                   cellpadding="0"
@@ -228,7 +235,7 @@
                   width="100%"
                   style="border-collapse: collapse;"
                 >
-                  {% set columns = 3 %}
+                  {% set columns = 4 %}
                   {% set total_epic = epic_games|length %}
                   {% for i in range(total_epic) %}
                     {% if i % columns == 0 %}
@@ -240,11 +247,11 @@
                       valign="top"
                       align="center"
                       style="
-                        width:33.33%;
+                        width:25%;
                         padding:10px;
                         border:1px solid #e0e0e0;
                         background-color:#fafafa;
-                        height:160px;
+                        height:200px;
                         vertical-align:top;
                         box-sizing: border-box;
                       "
@@ -272,8 +279,8 @@
                             />
                             <p
                               style="
-                                margin:10px 0 5px;
-                                font-size:14px;
+                                margin:15px 0 10px;
+                                font-size:16px;
                                 color:#333333;
                                 font-weight:bold;
                               "
@@ -288,12 +295,12 @@
                               href="{{ game.url }}"
                               style="
                                 display:inline-block;
-                                padding:8px 15px;
+                                padding:10px 20px;
                                 background-color:#ff9900;
                                 color:#ffffff;
                                 text-decoration:none;
                                 border-radius:4px;
-                                font-size:14px;
+                                font-size:16px;
                                 font-weight:bold;
                                 margin-top:10px;
                               "
@@ -314,6 +321,126 @@
             </tr>
           {% endif %}
           <!-- END Epic Games section -->
+
+          <!-- GOG Games section -->
+          {% if has_gog %}
+            <tr>
+              <td align="center" style="padding:0 30px 30px 30px;">
+                <!-- Anchor for GOG -->
+                <a name="gog-free"></a>
+
+                <!-- Header for GOG Games -->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td
+                      align="left"
+                      style="
+                        padding:0 0 15px 0;
+                        color:#333333;
+                        font-size:18px;
+                        line-height:1.6;
+                        font-weight:bold;
+                      "
+                    >
+                      Here are the latest free GOG offers:
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Nested table for GOG Games offers (4 columns per row) -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  width="100%"
+                  style="border-collapse: collapse;"
+                >
+                  {% set columns = 4 %}
+                  {% set total_gog = gog_games|length %}
+                  {% for i in range(total_gog) %}
+                    {% if i % columns == 0 %}
+                      <tr>
+                    {% endif %}
+
+                    {% set game = gog_games[i] %}
+                    <td
+                      valign="top"
+                      align="center"
+                      style="
+                        width:25%;
+                        padding:10px;
+                        border:1px solid #e0e0e0;
+                        background-color:#fafafa;
+                        height:200px;
+                        vertical-align:top;
+                        box-sizing: border-box;
+                      "
+                    >
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        width="100%"
+                        height="100%"
+                        style="border-collapse: collapse;"
+                      >
+                        <tr style="vertical-align: top;">
+                          <td align="center" style="padding:0;">
+                            <img
+                              src="{{ game.imageUrl }}"
+                              alt="{{ game.title }}"
+                              style="
+                                display:block;
+                                width:100%;
+                                height:auto;
+                                border:0;
+                                max-width:100%;
+                              "
+                            />
+                            <p
+                              style="
+                                margin:15px 0 10px;
+                                font-size:16px;
+                                color:#333333;
+                                font-weight:bold;
+                              "
+                            >
+                              {{ game.title }}
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: bottom;">
+                          <td align="center" style="padding:0;">
+                            <a
+                              href="{{ game.url }}"
+                              style="
+                                display:inline-block;
+                                padding:10px 20px;
+                                background-color:#ff9900;
+                                color:#ffffff;
+                                text-decoration:none;
+                                border-radius:4px;
+                                font-size:16px;
+                                font-weight:bold;
+                                margin-top:10px;
+                              "
+                            >
+                              Claim here
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+
+                    {% if (i + 1) % columns == 0 or i == total_gog - 1 %}
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+          <!-- END GOG Games section -->
 
           <!-- Footer/Unsubscribe -->
           <tr>
@@ -348,10 +475,10 @@
               </p>
               <p style="margin:0; font-size:12px; color:#999999;">
                 <a
-                  href="{{ base_url }}/LegalNotice"
+                  href="{{ base_url }}/PrivacyPolicy"
                   style="color:#999999; text-decoration:underline;"
                 >
-                  Legal Notice & Privacy Policy
+                  Privacy Policy
                 </a>
               </p>
             </td>
