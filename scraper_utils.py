@@ -2,6 +2,7 @@
 
 import random
 import asyncio
+import time  # Added import to fix the "time is not defined" error
 from typing import Optional, Dict, Any
 import json
 import os
@@ -9,16 +10,115 @@ from datetime import datetime, timedelta
 
 # Common User Agents list
 DESKTOP_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Edge/120.0.0.0'
+    # Chrome on Windows
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/118.0.0.0 Safari/537.36',
+
+    # Chrome on macOS
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/118.0.0.0 Safari/537.36',
+
+    # Chrome on Linux
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/118.0.0.0 Safari/537.36',
+
+    # Edge on Windows
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
+
+    # Opera on Windows
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36 OPR/120.0.0.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/119.0.0.0 Safari/537.36 OPR/119.0.0.0',
+
+    # Additional Chromium-based browsers
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36 Brave/120.0.0.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)'
+    ' Chrome/120.0.0.0 Safari/537.36 Vivaldi/5.8.2678.49',
 ]
 
 def get_random_user_agent() -> str:
     """Returns a random user agent from the list."""
     return random.choice(DESKTOP_AGENTS)
+
+def rotate_proxy() -> Optional[str]:
+    """
+    Rotate proxy by selecting a random proxy from the PROXY_LIST environment variable.
+    Returns None if no proxies are set.
+    """
+    proxy_list = os.getenv('PROXY_LIST', '').split(',')
+    proxy_list = [proxy.strip() for proxy in proxy_list if proxy.strip()]
+    if not proxy_list:
+        return None
+    return random.choice(proxy_list)
+
+class SyncRequestRateLimiter:
+    """Synchronous Rate Limiter for synchronous scripts like epic.py."""
+    def __init__(self, requests_per_minute: int = 30):
+        self.requests_per_minute = requests_per_minute
+        self.request_times = []
+
+    def wait_if_needed(self):
+        """
+        Implements rate limiting by tracking request times and adding delays when needed.
+        """
+        now = datetime.now()
+        minute_ago = now - timedelta(minutes=1)
+
+        # Remove old requests from tracking
+        self.request_times = [t for t in self.request_times if t > minute_ago]
+
+        if len(self.request_times) >= self.requests_per_minute:
+            # Calculate wait time until we can make a new request
+            earliest_request = self.request_times[0]
+            wait_seconds = (earliest_request + timedelta(minutes=1) - now).total_seconds()
+            if wait_seconds > 0:
+                print(f"Rate limit reached. Waiting for {wait_seconds:.2f} seconds.")
+                time.sleep(wait_seconds)
+
+        self.request_times.append(now)
+
+class AsyncRequestRateLimiter:
+    """Asynchronous Rate Limiter for asynchronous scripts like crawler.py and gog.py."""
+    def __init__(self, requests_per_minute: int = 30):
+        self.requests_per_minute = requests_per_minute
+        self.request_times = []
+
+    async def wait_if_needed(self):
+        """
+        Implements rate limiting by tracking request times and adding delays when needed.
+        """
+        now = datetime.now()
+        minute_ago = now - timedelta(minutes=1)
+
+        # Remove old requests from tracking
+        self.request_times = [t for t in self.request_times if t > minute_ago]
+
+        if len(self.request_times) >= self.requests_per_minute:
+            # Calculate wait time until we can make a new request
+            earliest_request = self.request_times[0]
+            wait_seconds = (earliest_request + timedelta(minutes=1) - now).total_seconds()
+            if wait_seconds > 0:
+                print(f"Rate limit reached. Waiting for {wait_seconds:.2f} seconds.")
+                await asyncio.sleep(wait_seconds)
+
+        self.request_times.append(now)
 
 async def setup_browser_context(playwright, cfg: Dict[str, Any]):
     """
@@ -32,11 +132,22 @@ async def setup_browser_context(playwright, cfg: Dict[str, Any]):
     context_options = {
         "viewport": {"width": width, "height": height},
         "user_agent": get_random_user_agent(),
-        "locale": random.choice(['en-US', 'en-GB', 'en-CA']),
-        "timezone_id": random.choice(['America/New_York', 'Europe/London', 'America/Los_Angeles']),
+        "locale": random.choice(['en-US', 'en-GB']),
+        "timezone_id": random.choice([
+            'Europe/London',
+            'Europe/Berlin',
+            'Europe/Paris',
+            'Europe/Madrid',
+            'Europe/Rome',
+            'Europe/Dublin',
+            'Europe/Amsterdam',
+            'Europe/Copenhagen',
+            'Europe/Stockholm',
+            'Europe/Vienna'
+        ]),
         "geolocation": {
-            "longitude": random.uniform(-122.4194, -73.9350),
-            "latitude": random.uniform(37.7749, 40.7128),
+            "longitude": random.uniform(-10.0, 30.0),
+            "latitude": random.uniform(35.0, 60.0),
         },
         "permissions": ["geolocation"],
         "color_scheme": "light",
@@ -73,18 +184,89 @@ async def setup_browser_context(playwright, cfg: Dict[str, Any]):
     
     # Add common browser properties to evade detection
     await page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {get: () => false});
-        Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
-        Object.defineProperty(navigator, 'plugins', {get: () => [
-            {
-                0: {type: "application/x-google-chrome-pdf"},
-                description: "Portable Document Format",
-                filename: "internal-pdf-viewer",
-                length: 1,
-                name: "Chrome PDF Plugin"
-            }
-        ]});
-        // Additional properties can be added here
+    // Existing overrides
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-GB', 'en'] });
+    Object.defineProperty(navigator, 'plugins', { get: () => [
+        {
+            0: { type: "application/x-google-chrome-pdf" },
+            description: "Portable Document Format",
+            filename: "internal-pdf-viewer",
+            length: 1,
+            name: "Chrome PDF Plugin"
+        }
+    ]});
+    Object.defineProperty(navigator, 'mimeTypes', { get: () => [
+        {
+            type: 'application/pdf',
+            suffixes: 'pdf',
+            description: 'Portable Document Format'
+        }
+    ]});
+    Object.defineProperty(navigator, 'permissions', { get: () => ({
+        query: (parameters) => Promise.resolve({ state: 'granted' })
+    })});
+    Object.defineProperty(navigator, 'deviceMemory', { get: () => 8 });
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 });
+    Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 0 });
+    Object.defineProperty(navigator, 'clipboard', { get: () => ({
+        writeText: () => {},
+        readText: () => Promise.resolve('')
+    })});
+    Object.defineProperty(navigator, 'mediaDevices', { get: () => ({
+        getUserMedia: () => Promise.resolve({})
+    })});
+    Object.defineProperty(navigator, 'storage', { get: () => ({
+        estimate: () => Promise.resolve({ quota: 1000000000, usage: 0 })
+    })});
+    Object.defineProperty(window, 'chrome', { get: () => ({ runtime: {} }) });
+    window.addEventListener('devtoolschange', function() {});
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    Object.defineProperty(navigator, 'userAgent', { get: () => navigator.userAgent });
+    
+    // Additional overrides
+    Object.defineProperty(navigator, 'connection', { get: () => ({
+        effectiveType: '4g',
+        downlink: 10,
+        rtt: 50,
+        saveData: false
+    })});
+    
+    Object.defineProperty(navigator, 'mediaQueryList', { get: () => ({
+        matches: false,
+        media: '',
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {}
+    })});
+    
+    Object.defineProperty(window, 'navigator', { get: () => navigator });
+    
+    Object.defineProperty(navigator, 'getBattery', { get: () => () => Promise.resolve({
+        charging: true,
+        chargingTime: 0,
+        dischargingTime: Infinity,
+        level: 1
+    })});
+    
+    // Mock WebGL renderer information
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+        const context = getContext.apply(this, [type, ...args]);
+        if (type === 'webgl' || type === 'experimental-webgl') {
+            const getParameter = context.getParameter;
+            context.getParameter = function(parameter) {
+                if (parameter === 37445) { // UNMASKED_VENDOR_WEBGL
+                    return 'Intel Inc.';
+                }
+                if (parameter === 37446) { // UNMASKED_RENDERER_WEBGL
+                    return 'Intel Iris OpenGL Engine';
+                }
+                return getParameter.apply(this, arguments);
+            };
+        }
+        return context;
+    };
     """)
     
     return context, page
@@ -92,40 +274,6 @@ async def setup_browser_context(playwright, cfg: Dict[str, Any]):
 def get_random_delay(min_ms: int = 500, max_ms: int = 3000) -> float:
     """Returns a random delay in seconds within the specified range."""
     return random.uniform(min_ms, max_ms) / 1000
-
-def rotate_proxy():
-    """
-    Implement your proxy rotation logic here.
-    This is a placeholder - you would need to add your own proxy service.
-    """
-    proxy_list = os.getenv('PROXY_LIST', '').split(',')
-    if not proxy_list or proxy_list == ['']:
-        return None
-    return random.choice(proxy_list)
-
-class RequestRateLimiter:
-    def __init__(self, requests_per_minute: int = 30):
-        self.requests_per_minute = requests_per_minute
-        self.request_times = []
-    
-    async def wait_if_needed(self):
-        """
-        Implements rate limiting by tracking request times and adding delays when needed.
-        """
-        now = datetime.now()
-        minute_ago = now - timedelta(minutes=1)
-        
-        # Remove old requests from tracking
-        self.request_times = [t for t in self.request_times if t > minute_ago]
-        
-        if len(self.request_times) >= self.requests_per_minute:
-            # Wait until we're under the limit
-            wait_time = (self.request_times[0] - minute_ago).total_seconds()
-            if wait_time > 0:
-                print(f"Rate limit reached. Waiting for {wait_time} seconds.")
-                await asyncio.sleep(wait_time)
-        
-        self.request_times.append(now)
 
 async def natural_scroll(page, max_scrolls: int = 50, min_delay: int = 1500, max_delay: int = 4000):
     """
@@ -135,7 +283,7 @@ async def natural_scroll(page, max_scrolls: int = 50, min_delay: int = 1500, max
     for scroll in range(max_scrolls):
         # Press PageDown to scroll
         await page.keyboard.press('PageDown')
-        print(f"Scroll {scroll + 1}: Pressed PageDown")
+        print(f"Scroll {scroll + 1}/{max_scrolls}: Pressed PageDown")
         
         # Wait for network to be idle and additional timeout
         await page.wait_for_load_state('networkidle')

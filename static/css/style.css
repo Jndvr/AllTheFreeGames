@@ -1,0 +1,215 @@
+/* ------------------------------
+   Global Variables and Resets
+------------------------------ */
+:root {
+  --navbar-height: 80px; /* Define a variable for navbar height */
+}
+
+/* Flexbox Layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth; /* Enables smooth scrolling */
+}
+
+body {
+  background-color: #e0e0e0; /* Default background color */
+  color: #2c2c2c;
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--navbar-height); /* Prevent navbar overlap */
+}
+
+/* Use this class on pages that need a different background (e.g. AvailableGames) */
+.page-availablegames {
+  background-color: #f4f4f4 !important;
+}
+
+/* ------------------------------
+   Navbar
+------------------------------ */
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1.5rem 2rem; /* Increased padding for better spacing */
+  z-index: 1000;
+  height: var(--navbar-height); /* Ensure navbar height matches the variable */
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #ff5722 !important;
+}
+
+/* ------------------------------
+   Main Content
+------------------------------ */
+main {
+  flex: 1; /* Allows main to grow and push footer down */
+  padding: 20px;
+}
+
+/* ------------------------------
+   Subscribe Card (Index Page)
+------------------------------ */
+.subscribe-card {
+  background-color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  margin-bottom: 3rem;
+}
+
+.subscribe-card .btn-primary {
+  background-color: #ff5722;
+  border: none;
+  transition: background-color 0.3s ease;
+  padding: 0.75rem;
+  font-size: 1rem;
+}
+
+.subscribe-card .btn-primary:hover {
+  background-color: #e64a19;
+}
+
+/* ------------------------------
+   Form Container (Contact Page)
+------------------------------ */
+.form-container {
+  background-color: #ffffff;
+  margin: 20px auto;
+  max-width: 600px;
+  padding: 1.5rem; /* Reduced padding for a slimmer appearance */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* ------------------------------
+   Content Wrapper (Privacy / Others)
+------------------------------ */
+.content-wrapper {
+  background-color: #ffffff;
+  margin: 20px auto;
+  max-width: 800px;
+  padding: 1.5rem; /* Reduced padding for a slimmer appearance */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* ------------------------------
+   Offer Table (AvailableGames Page)
+------------------------------ */
+.offer-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.offer-table td {
+  width: 25%;
+  padding: 1px;
+  border: 1px solid #e0e0e0;
+  background-color: #fafafa;
+  vertical-align: top;
+  box-sizing: border-box;
+  text-align: center;
+  height: 180px; /* Adjust card height here if needed */
+}
+
+.offer-inner-table {
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+}
+
+.offer-inner-table img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+  max-width: 100%;
+}
+
+.game-title {
+  margin: 15px 0 10px;
+  font-size: 16px;
+  color: #333333;
+  font-weight: bold;
+}
+
+.claim-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #ff9900;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* ------------------------------
+   Footer
+------------------------------ */
+.footer {
+  background-color: #ffffff;
+  padding: 0.5rem 0; /* Reduced padding */
+  text-align: center;
+  color: #6c757d;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+.footer p {
+  margin: 0.25rem 0; /* Reduced margins */
+  font-size: 0.9rem; /* Slightly smaller font size */
+}
+
+.footer a.footer-link {
+  color: #6c757d;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.footer a.footer-link:hover {
+  color: #333333;
+}
+
+/* Hover effect for social media icons in footer */
+.footer .social-icons a.footer-link i {
+  color: #6c757d; /* Default icon color */
+  transition: color 0.3s ease;
+}
+
+.footer .social-icons a.footer-link:hover i {
+  color: #0e76a8; /* Example hover color */
+}
+
+/* ------------------------------
+   Responsive Adjustments
+------------------------------ */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .subscribe-card {
+    padding: 2rem;
+  }
+
+  .form-container {
+    padding: 1rem;
+  }
+
+  .content-wrapper {
+    padding: 1rem;
+  }
+
+  /* Switch the 4-column card layout to 2 columns on smaller screens */
+  .offer-table td {
+    width: 50%;
+  }
+}

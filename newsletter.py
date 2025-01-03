@@ -67,7 +67,7 @@ template = env.get_template("newsletter_template.html")
 # -------------------------------------------------
 def build_games_html(subscriber_name, confirm_token):
     """
-    Reads games from Firestore collections 'prime_free_games', 'epic_free_games', and 'gog_free_games'
+    Reads games from Firestore collections 'prime_free_games', 'epic_free_games', and 'gog_giveaway'
     and constructs the HTML content for the email using Jinja2.
     Reuses 'confirm_token' to build the unsubscribe link.
     """
@@ -101,7 +101,7 @@ def build_games_html(subscriber_name, confirm_token):
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
     # Fetch GOG games
-    gog_docs = db.collection("gog_free_games").stream()
+    gog_docs = db.collection("gog_giveaway").stream()
     gog_games = []
     for doc in gog_docs:
         data = doc.to_dict()
@@ -132,7 +132,9 @@ def build_games_html(subscriber_name, confirm_token):
         gog_games=gog_games,      # new Jinja variable for GOG
         unsubscribe_url=unsubscribe_url,
         base_url=base_url,
-        current_year=current_year
+        current_year=current_year,
+        confirm_token=confirm_token
+        
     )
     return html
 
@@ -141,7 +143,7 @@ def build_games_html(subscriber_name, confirm_token):
 # -------------------------------------------------
 def build_games_text():
     """
-    Reads games from 'prime_free_games', 'epic_free_games', and 'gog_free_games'
+    Reads games from 'prime_free_games', 'epic_free_games', and 'gog_giveaway'
     and constructs the plain text content for the email.
     """
     if not db:
@@ -167,7 +169,7 @@ def build_games_text():
         epic_lines.append(f"{title}\n  URL: {url}\n")
 
     # GOG
-    gog_docs = db.collection("gog_free_games").stream()
+    gog_docs = db.collection("gog_giveaway").stream()
     gog_lines = []
     for doc in gog_docs:
         data = doc.to_dict()

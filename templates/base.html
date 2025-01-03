@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w,d,s,l,i){
+      w[l]=w[l]||[];
+      w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),
+          dl=l!='dataLayer'?'&l='+l:'';
+      j.async=true;
+      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+      f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-W2Z6JLTT');
+  </script>
+  <!-- End Google Tag Manager -->
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary Meta Tags -->
+  <title>{% block title %}WeeklyGameVault{% endblock %}</title>
+  {% block meta %}
+  <!-- Optionally, pages can override or add extra meta tags here -->
+  {% endblock meta %}
+
+  <!-- Bootstrap CSS (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome (optional) -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Your external CSS -->
+  <link 
+    rel="stylesheet" 
+    href="{{ url_for('static', filename='css/style.css') }}"
+  />
+
+  <!-- Cookie-Script (optional, if used globally) -->
+  <script type="text/javascript" charset="UTF-8" src="//cdn.cookie-script.com/s/790ed04399128ac4b7cd661e26942202.js"></script>
+
+  {% block head_scripts %}
+  <!-- Additional scripts can be placed here by child templates if needed -->
+  {% endblock head_scripts %}
+</head>
+<body class="{% block body_class %}{% endblock body_class %}">
+
+  <!-- Google Tag Manager (noscript) -->
+  <noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2Z6JLTT"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe>
+  </noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Navbar (shared across all pages) -->
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-gamepad me-2"></i>WeeklyGameVault
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+        aria-controls="navbarContent"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/#about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/#subscribe">Subscribe</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/AvailableGames">Available Games</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content (injected by child templates) -->
+  <main>
+    {% block content %}{% endblock content %}
+  </main>
+
+  <!-- Footer (shared across all pages) -->
+  <footer class="footer">
+    <div class="container d-flex flex-column align-items-center">
+      <p> &copy; 2025 WeeklyGameVault. All rights reserved.</p>
+      <p>
+        <a href="/PrivacyPolicy" class="footer-link">Privacy Policy</a>
+      </p>
+      <!-- Example: social icons area
+      <div class="social-icons mt-2">
+        <a href="https://www.linkedin.com/in/janduever/" target="_blank" class="footer-link me-3" aria-label="LinkedIn">
+          <i class="fab fa-linkedin fa-lg"></i>
+        </a>
+      </div>
+      -->
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS (CDN) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
+
+  <!-- Font Awesome JS (CDN) -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
+    integrity="sha512-dI0aC5jVvLr4EQenYQbC+BgJ3RzH+d85e9LHZb3MlZmvHjyPP0pEhR1sMVQ+w3rQmTxJWgV+X+UxZ3Gxq6jv2Q=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+
+  {% block extra_scripts %}
+  <!-- Child templates can inject extra scripts here if needed -->
+  {% endblock extra_scripts %}
+
+</body>
+</html>

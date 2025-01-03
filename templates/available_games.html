@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}All Available Free Games | WeeklyGameVault{% endblock %}
+
+{% block body_class %}page-availablegames{% endblock body_class %}
+
+{% block content %}
+<div class="content-wrapper">
+  <h1 class="mb-4 text-center">All Available Free Games</h1>
+
+  <!-- Prime Gaming -->
+  {% if prime_games %}
+    <h2>Prime Gaming</h2>
+    <table class="offer-table">
+      {% set columns = 4 %}
+      {% set total = prime_games|length %}
+      {% for i in range(total) %}
+        {% if i % columns == 0 %}<tr>{% endif %}
+        {% set g = prime_games[i] %}
+        <td>
+          <table class="offer-inner-table">
+            <tr style="vertical-align: top;">
+              <td align="center" style="padding:0;">
+                <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
+                <p class="game-title">{{ g.title }}</p>
+              </td>
+            </tr>
+            <tr style="vertical-align: bottom;">
+              <td align="center" style="padding:0;">
+                <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+        {% if (i + 1) % columns == 0 or i == total - 1 %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    <br>
+  {% endif %}
+
+  <!-- Epic Games -->
+  {% if epic_games %}
+    <h2>Epic Games</h2>
+    <table class="offer-table">
+      {% set columns = 4 %}
+      {% set total_epic = epic_games|length %}
+      {% for i in range(total_epic) %}
+        {% if i % columns == 0 %}<tr>{% endif %}
+        {% set g = epic_games[i] %}
+        <td>
+          <table class="offer-inner-table">
+            <tr style="vertical-align: top;">
+              <td align="center" style="padding:0;">
+                <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
+                <p class="game-title">{{ g.title }}</p>
+              </td>
+            </tr>
+            <tr style="vertical-align: bottom;">
+              <td align="center" style="padding:0;">
+                <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+        {% if (i + 1) % columns == 0 or i == total_epic - 1 %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    <br>
+  {% endif %}
+
+  <!-- GOG Free Games Collection -->
+  {% if gog_free %}
+    <h2>GOG Free Games Collection</h2>
+    <table class="offer-table">
+      {% set columns = 4 %}
+      {% set total_free = gog_free|length %}
+      {% for i in range(total_free) %}
+        {% if i % columns == 0 %}<tr>{% endif %}
+        {% set g = gog_free[i] %}
+        <td>
+          <table class="offer-inner-table">
+            <tr style="vertical-align: top;">
+              <td align="center" style="padding:0;">
+                <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
+                <p class="game-title">{{ g.title }}</p>
+              </td>
+            </tr>
+            <tr style="vertical-align: bottom;">
+              <td align="center" style="padding:0;">
+                <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+        {% if (i + 1) % columns == 0 or i == total_free - 1 %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    <br>
+  {% endif %}
+
+  <!-- GOG Giveaway -->
+  {% if gog_giveaway %}
+    <h2>GOG Giveaway</h2>
+    <table class="offer-table">
+      {% set columns = 4 %}
+      {% set total_giveaway = gog_giveaway|length %}
+      {% for i in range(total_giveaway) %}
+        {% if i % columns == 0 %}<tr>{% endif %}
+        {% set g = gog_giveaway[i] %}
+        <td>
+          <table class="offer-inner-table">
+            <tr style="vertical-align: top;">
+              <td align="center" style="padding:0;">
+                <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
+                <p class="game-title">{{ g.title }}</p>
+              </td>
+            </tr>
+            <tr style="vertical-align: bottom;">
+              <td align="center" style="padding:0;">
+                <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+        {% if (i + 1) % columns == 0 or i == total_giveaway - 1 %}</tr>{% endif %}
+      {% endfor %}
+    </table>
+    <br>
+  {% endif %}
+</div>
+{% endblock content %}

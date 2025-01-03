@@ -1,428 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends "base.html" %}
 
-  <!-- Google Tag Manager -->
-  <script>
-    (function(w,d,s,l,i){
-      w[l]=w[l]||[];
-      w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-      var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),
-          dl=l!='dataLayer'?'&l='+l:'';
-      j.async=true;
-      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-      f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-W2Z6JLTT');
-  </script>
-  <!-- End Google Tag Manager -->
+{% block title %}Get Weekly Game Updates!{% endblock %}
 
-  <meta charset="UTF-8" />
-  
-  <!-- Primary Meta Tags -->
-  <title>Get Weekly Game Updates!</title>
-  <meta
-    name="description"
-    content="Subscribe to our newsletter to receive the latest game updates from Prime Gaming, Epic Store, and more!"
-  />
-  <meta
-    name="keywords"
-    content="Newsletter, Gaming Updates, Free Games, Email Subscription, Prime Gaming, Epic Store"
-  />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% block meta %}
+<meta
+  name="description"
+  content="Subscribe to our newsletter to receive the latest game updates from Prime Gaming, Epic Store, and more!"
+/>
+<meta
+  name="keywords"
+  content="Newsletter, Gaming Updates, Free Games, Email Subscription, Prime Gaming, Epic Store"
+/>
+{% endblock meta %}
 
-  <!-- Bootstrap CSS (CDN) -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-
-  <!-- Google Fonts -->
-  <link 
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" 
-    rel="stylesheet"
-  >
-
-  <!-- Font Awesome for Icons (optional) -->
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    rel="stylesheet"
-  />
-
-  <!-- Cookie-Script Integration -->
-  <script type="text/javascript" charset="UTF-8" src="//cdn.cookie-script.com/s/790ed04399128ac4b7cd661e26942202.js"></script>
-  <!-- End Cookie-Script Integration -->
-
-  <style>
-    :root {
-      --navbar-height: 80px; /* Define a variable for navbar height */
-    }
-
-    /* Flexbox Layout */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #e0e0e0;
-      color: #2c2c2c;
-      font-family: 'Roboto', sans-serif;
-      display: flex;
-      flex-direction: column;
-      padding-top: var(--navbar-height); /* Added padding to prevent navbar overlap */
-    }
-
-    html {
-      scroll-padding-top: var(--navbar-height); /* Ensures in-page links are scrolled correctly */
-      scroll-behavior: smooth; /* Enables smooth scrolling */
-    }
-
-    .navbar {
-      background-color: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 1.5rem 2rem; /* Increased padding for better spacing */
-      z-index: 1000;
-      height: var(--navbar-height); /* Ensure navbar height matches the variable */
-    }
-
-    .navbar-brand {
-      font-weight: bold;
-      font-size: 1.5rem;
-      color: #ff5722 !important;
-    }
-
-    /* Main Content */
-    main {
-      flex: 1; /* Allows main to grow and push footer down */
-      padding: 20px;
-    }
-
-    .subscribe-card {
-      background-color: #ffffff;
-      border: none;
-      border-radius: 10px;
-      padding: 2.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-bottom: 3rem;
-    }
-
-    .subscribe-card .btn-primary {
-      background-color: #ff5722;
-      border: none;
-      transition: background-color 0.3s ease;
-      padding: 0.75rem;
-      font-size: 1rem;
-    }
-
-    .subscribe-card .btn-primary:hover {
-      background-color: #e64a19;
-    }
-
-    /* Slimmer Footer */
-    .footer {
-      background-color: #ffffff;
-      padding: 0.5rem 0; /* Reduced padding */
-      text-align: center;
-      color: #6c757d;
-      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-    }
-
-    .footer p {
-      margin: 0.25rem 0; /* Reduced margins */
-      font-size: 0.9rem;  /* Slightly smaller font size for a slimmer look */
-    }
-
-    .footer a.footer-link {
-      color: #6c757d;
-      text-decoration: underline;
-      font-size: 0.9rem; /* Consistent font size with footer text */
-    }
-
-    .footer a.footer-link:hover {
-      color: #333333;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-      .navbar-brand {
-        font-size: 1.2rem;
-      }
-      .subscribe-card {
-        padding: 2rem;
-      }
-    }
-
-      /* Hover effect for social media icons */
-  .footer .social-icons a.footer-link i {
-    color: #6c757d; /* Default icon color */
-    transition: color 0.3s ease;
-  }
-
-  .footer .social-icons a.footer-link:hover i {
-    color: #0e76a8; /* LinkedIn's brand color */
-  }
-
-  </style>
-</head>
-<body>
-
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2Z6JLTT"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light fixed-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">
-        <i class="fas fa-gamepad me-2"></i>WeeklyGameVault
-      </a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarContent"
-        aria-controls="navbarContent"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="#about">About</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#subscribe">Subscribe</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/contact">Contact</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Main Content -->
-  <main>
-    <!-- About Section -->
-    <section class="container my-5" id="about">
-      <div class="row align-items-center">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <h3>About WeeklyGameVault</h3>
-          <p>
-            WeeklyGameVault is dedicated to bringing you the latest and greatest free games from top gaming platforms. 
-            Whether you're a casual gamer or a hardcore enthusiast, our newsletter ensures you never miss out on exciting 
-            opportunities to expand your game library without spending a dime.
-          </p>
-          <ul class="list-unstyled">
-            <li class="mb-2">
-              <i class="fas fa-check-circle text-success me-2"></i>Weekly Updates
-            </li>
-            <li class="mb-2">
-              <i class="fas fa-check-circle text-success me-2"></i>Everything in one Newsletter
-            </li>
-            <li class="mb-2">
-              <i class="fas fa-check-circle text-success me-2"></i>User-Friendly Interface
-            </li>
-          </ul>
-        </div>
-        <div class="col-lg-6">
-          <img src="{{ url_for('static', filename='images/vault.png') }}" alt="Vault filled with games in pixel art" class="img-fluid rounded shadow">
-        </div>
-      </div>
-    </section>
-
-    <!-- Subscribe Section -->
-    <div class="container my-5" id="subscribe">
-      <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6">
-          <div class="subscribe-card card">
-            <div class="card-body">
-              <h2 class="card-title mb-4 text-center">Stay Updated with our Newsletter</h2>
-              <p class="card-text text-center">
-                Don’t miss out on the latest free games! Subscribe to receive timely updates directly to your inbox.
-              </p>
-              
-              <form id="newsletterForm">
-                <div class="mb-4">
-                  <label for="emailInput" class="form-label visually-hidden">Email address</label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="emailInput"
-                    name="email"
-                    placeholder="Enter your email address"
-                    aria-describedby="emailHelp"
-                    required
-                  />
-                </div>
-
-                <!-- Frequency Selection (Required) -->
-                <div class="mb-4">
-                  <p class="mb-2" style="font-weight: 500;">How often do you want to receive our newsletter?</p>
-                  <!-- 
-                    Use form-check-inline to align side by side
-                  -->
-                  <div class="form-check form-check-inline">
-                    <input 
-                      class="form-check-input" 
-                      type="radio" 
-                      name="frequency" 
-                      id="weeklyOption" 
-                      value="weekly"
-                      required
-                    >
-                    <label class="form-check-label" for="weeklyOption">Weekly</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input 
-                      class="form-check-input" 
-                      type="radio" 
-                      name="frequency" 
-                      id="newGameOption" 
-                      value="newgame"
-                      required
-                    >
-                    <label class="form-check-label" for="newGameOption">Every time a new game is available</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input
-                      class="form-check-input"
-                      type="radio"
-                      name="frequency"
-                      id="bothOption"
-                      value="both"
-                      required
-                    >
-                    <label class="form-check-label" for="bothOption">Both</label>
-                  </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100" id="subscribeBtn">
-                  <span
-                    class="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                    id="loadingSpinner"
-                    style="display: none;"
-                  ></span>
-                  Subscribe
-                </button>
-                <div class="mt-4 text-center">
-                  <small class="text-muted">We respect your privacy. Unsubscribe at any time.</small>
-                </div>
-                <p class="message mt-3 text-center" id="statusMessage"></p>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container d-flex flex-column align-items-center">
-      <p> &copy; 2025 WeeklyGameVault. All rights reserved.</p>
+{% block content %}
+<!-- About Section -->
+<section class="container my-5" id="about">
+  <div class="row align-items-center">
+    <div class="col-lg-6 mb-4 mb-lg-0">
+      <h3>About WeeklyGameVault</h3>
       <p>
-        <a href="/PrivacyPolicy" class="footer-link">Privacy Policy</a>
+        WeeklyGameVault is dedicated to bringing you the latest and greatest free games from top gaming platforms.
+        Whether you're a casual gamer or a hardcore enthusiast, our newsletter ensures you never miss out on
+        exciting opportunities to expand your game library without spending a dime.
       </p>
-      <!-- Social Media Icons 
-      <div class="social-icons mt-2">
-        <a href="https://www.linkedin.com/in/janduever/" target="_blank" class="footer-link me-3" aria-label="LinkedIn">
-          <i class="fab fa-linkedin fa-lg"></i>
-        </a>
-        Social Media Icons End -->
+      <ul class="list-unstyled">
+        <li class="mb-2">
+          <i class="fas fa-check-circle text-success me-2"></i>Weekly Updates
+        </li>
+        <li class="mb-2">
+          <i class="fas fa-check-circle text-success me-2"></i>Everything in one Newsletter
+        </li>
+        <li class="mb-2">
+          <i class="fas fa-check-circle text-success me-2"></i>User-Friendly Interface
+        </li>
+      </ul>
+    </div>
+    <div class="col-lg-6">
+      <img
+        src="{{ url_for('static', filename='images/vault.png') }}"
+        alt="Vault filled with games in pixel art"
+        class="img-fluid rounded shadow"
+      >
+    </div>
+  </div>
+</section>
+
+<!-- Subscribe Section -->
+<div class="container my-5" id="subscribe">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="subscribe-card card">
+        <div class="card-body">
+          <h2 class="card-title mb-4 text-center">Stay Updated with our Newsletter</h2>
+          <p class="card-text text-center">
+            Don’t miss out on the latest free games! Subscribe to receive timely updates directly to your inbox.
+          </p>
+
+          <form id="newsletterForm">
+            <div class="mb-4">
+              <label for="emailInput" class="form-label visually-hidden">Email address</label>
+              <input
+                type="email"
+                class="form-control"
+                id="emailInput"
+                name="email"
+                placeholder="Enter your email address"
+                required
+              />
+            </div>
+
+            <!-- Frequency Selection (Required) -->
+            <div class="mb-4">
+              <p class="mb-2" style="font-weight: 500;">How often do you want to receive our newsletter?</p>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="frequency"
+                  id="weeklyOption"
+                  value="weekly"
+                  required
+                >
+                <label class="form-check-label" for="weeklyOption">Weekly</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="frequency"
+                  id="newGameOption"
+                  value="newgame"
+                  required
+                >
+                <label class="form-check-label" for="newGameOption">Every time a new game is available</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="frequency"
+                  id="bothOption"
+                  value="both"
+                  required
+                >
+                <label class="form-check-label" for="bothOption">Both</label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" id="subscribeBtn">
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+                id="loadingSpinner"
+                style="display: none;"
+              ></span>
+              Subscribe
+            </button>
+            <div class="mt-4 text-center">
+              <small class="text-muted">We respect your privacy. Unsubscribe at any time.</small>
+            </div>
+            <p class="message mt-3 text-center" id="statusMessage"></p>
+          </form>
+        </div>
       </div>
     </div>
-  </footer>
-  
+  </div>
+</div>
+{% endblock content %}
 
-  <!-- Bootstrap JS (CDN) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
+{% block extra_scripts %}
+<script>
+  // Newsletter Form Submission
+  document
+    .getElementById("newsletterForm")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
 
-  <!-- Font Awesome JS (CDN) -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
-    integrity="sha512-dI0aC5jVvLr4EQenYQbC+BgJ3RzH+d85e9LHZb3MlZmvHjyPP0pEhR1sMVQ+w3rQmTxJWgV+X+UxZ3Gxq6jv2Q=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  ></script>
+      const emailInput = document.getElementById("emailInput");
+      const statusMessage = document.getElementById("statusMessage");
+      const subscribeBtn = document.getElementById("subscribeBtn");
+      const loadingSpinner = document.getElementById("loadingSpinner");
 
-  <!-- Custom JS for form submissions -->
-  <script>
-    // Newsletter Form Submission
-    document
-      .getElementById("newsletterForm")
-      .addEventListener("submit", async function (event) {
-        event.preventDefault();
+      // Show spinner and disable button to prevent multiple clicks
+      loadingSpinner.style.display = "inline-block";
+      subscribeBtn.disabled = true;
 
-        const emailInput = document.getElementById("emailInput");
-        const statusMessage = document.getElementById("statusMessage");
-        const subscribeBtn = document.getElementById("subscribeBtn");
-        const loadingSpinner = document.getElementById("loadingSpinner");
+      // Collect form data
+      const formData = new FormData();
+      formData.append("email", emailInput.value);
 
-        // Show spinner and disable button to prevent multiple clicks
-        loadingSpinner.style.display = "inline-block";
-        subscribeBtn.disabled = true;
-
-        // Collect form data
-        const formData = new FormData();
-        formData.append("email", emailInput.value);
-
-        // Append frequency (one of the radio buttons)
-        const frequencyElems = document.getElementsByName("frequency");
-        let selectedFrequency = "";
-        for (let i = 0; i < frequencyElems.length; i++) {
-          if (frequencyElems[i].checked) {
-            selectedFrequency = frequencyElems[i].value;
-            break;
-          }
+      // Append frequency (one of the radio buttons)
+      const frequencyElems = document.getElementsByName("frequency");
+      let selectedFrequency = "";
+      for (let i = 0; i < frequencyElems.length; i++) {
+        if (frequencyElems[i].checked) {
+          selectedFrequency = frequencyElems[i].value;
+          break;
         }
-        formData.append("frequency", selectedFrequency);
+      }
+      formData.append("frequency", selectedFrequency);
 
-        try {
-          const response = await fetch("/subscribe", {
-            method: "POST",
-            body: formData,
-          });
+      try {
+        const response = await fetch("/subscribe", {
+          method: "POST",
+          body: formData,
+        });
 
-          // Once we get a response, hide the spinner and enable the button again
-          loadingSpinner.style.display = "none";
-          subscribeBtn.disabled = false;
+        // Once we get a response, hide the spinner and enable the button again
+        loadingSpinner.style.display = "none";
+        subscribeBtn.disabled = false;
 
-          if (response.ok) {
-            const message = await response.text();
-            statusMessage.textContent = message;
-            statusMessage.style.color = "#28a745"; // Green
-            emailInput.value = "";
-            // Uncheck the radio buttons
-            frequencyElems.forEach(radio => (radio.checked = false));
-          } else if (response.status === 429) {
-            // Rate limit exceeded
-            statusMessage.textContent =
-              "You have made too many requests. Please try again later.";
-            statusMessage.style.color = "#dc3545"; // Red
-          } else {
-            const errorMessage = await response.text();
-            statusMessage.textContent = `Error: ${errorMessage}`;
-            statusMessage.style.color = "#dc3545"; // Red
-          }
-        } catch (error) {
-          // Hide spinner, enable button
-          loadingSpinner.style.display = "none";
-          subscribeBtn.disabled = false;
-
-          statusMessage.textContent = "An unexpected error occurred.";
+        if (response.ok) {
+          const message = await response.text();
+          statusMessage.textContent = message;
+          statusMessage.style.color = "#28a745"; // Green
+          emailInput.value = "";
+          // Uncheck the radio buttons
+          frequencyElems.forEach(radio => (radio.checked = false));
+        } else if (response.status === 429) {
+          // Rate limit exceeded
+          statusMessage.textContent =
+            "You have made too many requests. Please try again later.";
+          statusMessage.style.color = "#dc3545"; // Red
+        } else {
+          const errorMessage = await response.text();
+          statusMessage.textContent = `Error: ${errorMessage}`;
           statusMessage.style.color = "#dc3545"; // Red
         }
-      });
-  </script>
-</body>
-</html>
+      } catch (error) {
+        // Hide spinner, enable button
+        loadingSpinner.style.display = "none";
+        subscribeBtn.disabled = false;
+
+        statusMessage.textContent = "An unexpected error occurred.";
+        statusMessage.style.color = "#dc3545"; // Red
+      }
+    });
+</script>
+{% endblock extra_scripts %}

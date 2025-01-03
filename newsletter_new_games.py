@@ -80,7 +80,7 @@ def update_last_run_time(new_time):
 
 def build_new_games_list(last_run_time):
     """
-    Query 'prime_free_games', 'epic_free_games', and 'gog_free_games' for docs with createdAt > last_run_time.
+    Query 'prime_free_games', 'epic_free_games', and 'gog_giveaway' for docs with createdAt > last_run_time.
     Return a dictionary with lists of newly added prime, epic, and gog games.
     """
     if not db:
@@ -116,7 +116,7 @@ def build_new_games_list(last_run_time):
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
     # Fetch new GOG games
-    new_gog_query = db.collection("gog_free_games").where("createdAt", ">", last_run_time)
+    new_gog_query = db.collection("gog_giveaway").where("createdAt", ">", last_run_time)
     gog_docs = new_gog_query.stream()
 
     gog_games = []
@@ -193,7 +193,7 @@ def send_new_games_email(to_email, confirm_token, html_content, text_content):
 def run_new_games_newsletter():
     """
     1) Grab last_run_time from Firestore (config/newGamesNewsletter).
-    2) Query prime_free_games, epic_free_games, and gog_free_games with createdAt > last_run_time.
+    2) Query prime_free_games, epic_free_games, and gog_giveaway with createdAt > last_run_time.
     3) Send the newsletter only to subscribers with frequency in ["newgame", "both"] AND confirmed = True.
     4) If we send to at least one subscriber, update last_run_time to now.
     """
@@ -243,7 +243,8 @@ def run_new_games_newsletter():
             gog_games=new_games["gog_games"],  # Pass GOG games to template
             unsubscribe_url=unsubscribe_url,
             base_url=base_url,
-            current_year=current_year
+            current_year=current_year,
+            confirm_token=confirm_token
         )
 
         send_new_games_email(email, confirm_token, rendered_html, text_content)

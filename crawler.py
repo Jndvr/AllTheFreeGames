@@ -9,16 +9,20 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 import firebase_admin
 from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
+import warnings
 
-from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list
+from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list, write_static_games_file
 from scraper_utils import (
     setup_browser_context,
     get_random_delay,
     natural_scroll,
     rotate_proxy,
-    RequestRateLimiter,
+    AsyncRequestRateLimiter,
     human_like_mouse_movements
 )
+
+# Suppress UserWarnings about Firestore filters
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # Load environment variables
 load_dotenv()
@@ -65,7 +69,7 @@ os.makedirs(CFG['browser_data_dir'], exist_ok=True)
 async def scrape_prime_gaming():
     print(f"{get_current_datetime()} - Starting Prime Gaming scraper...")
 
-    rate_limiter = RequestRateLimiter()
+    rate_limiter = AsyncRequestRateLimiter()
     CFG['proxy'] = rotate_proxy()
 
     async with async_playwright() as p:
@@ -215,6 +219,7 @@ async def scrape_prime_gaming():
                 collection_ref.document(game_id).delete()
 
             print('Firestore database updated successfully.')
+            write_static_games_file(db)
 
             # Take screenshot with random delay
             await page.wait_for_timeout(get_random_delay(1000, 2000))  # Wait between 1 to 2 seconds

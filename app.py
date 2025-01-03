@@ -343,7 +343,65 @@ def unsubscribe(token):
         return f"You have unsubscribed from the newsletter for {unsubscribed_email}."
     else:
         return "Invalid or expired unsubscribe link."
+    
+@app.route("/AvailableGames", methods=["GET"])
+def available_games():
+    """
+    Serves all games from the local static_data/all_games.json
+    so we don't hit Firestore each time.
+    """
+    try:
+        with open("static_data/all_games.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        # If the file doesn't exist yet, fallback
+        data = {
+            "prime_games": [],
+            "epic_games": [],
+            "gog_free": [],
+            "gog_giveaway": []
+        }
 
+    return render_template(
+        "available_games.html",
+        prime_games=data.get("prime_games", []),
+        epic_games=data.get("epic_games", []),
+        gog_free=data.get("gog_free", []),
+        gog_giveaway=data.get("gog_giveaway", [])
+    )
+
+@app.route("/change-frequency/<token>", methods=["GET", "POST"])
+def change_frequency(token):
+    """
+    Allows a user to change their newsletter frequency via a link in the newsletter.
+    """
+    if not db:
+        return "Database not initialized. Contact administrator.", 500
+
+    if request.method == "GET":
+        # Render a simple form with radio buttons for "weekly", "newgame", "both"
+        return render_template("change_frequency.html", token=token)
+
+    else:
+        # POST
+        new_freq = request.form.get("frequency", "").strip()  # "weekly"/"newgame"/"both"
+        if new_freq not in ["weekly", "newgame", "both"]:
+            return "Invalid frequency choice.", 400
+
+        # Find subscriber doc by confirm_token
+        docs = db.collection("newsletter_subscribers") \
+                 .where("confirm_token", "==", token) \
+                 .stream()
+        updated_doc_id = None
+        for doc in docs:
+            doc.reference.update({"frequency": new_freq})
+            updated_doc_id = doc.id
+            break
+
+        if updated_doc_id:
+            return f"Your frequency has been updated to '{new_freq}'. Thank you!"
+        else:
+            return "Invalid or expired token. Could not update frequency."
 # -------------------------------------------------
 # 7. Main Entry Point
 # -------------------------------------------------

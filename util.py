@@ -75,3 +75,56 @@ def send_email(subject, content):
         print(f'Email sent successfully to {to_email}.')
     except Exception as e:
         print(f'Failed to send email to {to_email}:', e)
+
+# util.py (or wherever you put this helper function)
+import os
+import json
+from datetime import datetime
+from google.cloud.firestore_v1 import DocumentSnapshot
+
+def write_static_games_file(db):
+    """
+    Reads from prime_free_games, epic_free_games, gog_free_games, gog_giveaway
+    and writes a local JSON file for the /AvailableGames route to serve.
+    Converts Firestore timestamps to string to avoid JSON serialization errors.
+    """
+
+    data = {
+        "prime_games": [],
+        "epic_games": [],
+        "gog_free": [],
+        "gog_giveaway": []
+    }
+
+    # Helper: convert Firestore doc to dict and fix timestamps
+    def doc_to_serializable(doc):
+        d = doc.to_dict()
+        for k, v in d.items():
+            # If it's a Firestore Timestamp or 'DatetimeWithNanoseconds', convert to iso string
+            if hasattr(v, "isoformat"):
+                d[k] = v.isoformat()
+        return d
+
+    # prime
+    prime_docs = db.collection("prime_free_games").stream()
+    data["prime_games"] = [doc_to_serializable(doc) for doc in prime_docs]
+
+    # epic
+    epic_docs = db.collection("epic_free_games").stream()
+    data["epic_games"] = [doc_to_serializable(doc) for doc in epic_docs]
+
+    # old GOG freebies
+    gog_docs = db.collection("gog_free_games").stream()
+    data["gog_free"] = [doc_to_serializable(doc) for doc in gog_docs]
+
+    # new GOG giveaways
+    gog_giveaway_docs = db.collection("gog_giveaway").stream()
+    data["gog_giveaway"] = [doc_to_serializable(doc) for doc in gog_giveaway_docs]
+
+    # Save to a local file, e.g. 'static_data/all_games.json'
+    os.makedirs("static_data", exist_ok=True)
+    path = os.path.join("static_data", "all_games.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"Static file '{path}' updated successfully!")

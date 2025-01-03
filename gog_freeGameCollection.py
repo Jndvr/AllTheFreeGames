@@ -5,6 +5,7 @@ import json
 import traceback
 import random
 from datetime import datetime, timezone
+import warnings
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -19,14 +20,17 @@ except ImportError:
     print("playwright-stealth is not installed. Run: pip install playwright-stealth")
     stealth_async = None
 
-from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list
+from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list, write_static_games_file
 from scraper_utils import (
     setup_browser_context,
     get_random_delay,
     rotate_proxy,
-    RequestRateLimiter,
+    AsyncRequestRateLimiter,
     human_like_mouse_movements
 )
+
+# Suppress UserWarnings about Firestore filters
+warnings.filterwarnings("ignore", category=UserWarning)
 
 load_dotenv()
 
@@ -65,7 +69,7 @@ CFG = {
 os.makedirs(CFG['screenshots_dir'], exist_ok=True)
 os.makedirs(CFG['browser_data_dir'], exist_ok=True)
 
-rate_limiter = RequestRateLimiter(requests_per_minute=30)
+rate_limiter = AsyncRequestRateLimiter(requests_per_minute=30)
 
 async def pagedown_scroll(page, max_pagedowns: int = 10, min_delay: int = 500, max_delay: int = 1500):
     for pagedown in range(max_pagedowns):
@@ -212,6 +216,7 @@ async def scrape_gog():
                     collection_ref.document(game_id).delete()
 
                 print('Firestore database updated successfully.')
+                write_static_games_file(db)
 
                 await page.wait_for_timeout(get_random_delay(1000, 2000))
                 final_screenshot_path = resolve_path(
