@@ -10,7 +10,9 @@ from email.mime.multipart import MIMEMultipart
 
 import requests  # To verify reCAPTCHA
 from flask import Flask, request, render_template
-from dotenv import load_dotenv
+
+# Load environment depending on ENVIRONMENT
+from load_env import load_environment
 
 # Firebase
 import firebase_admin
@@ -26,7 +28,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 # -------------------------------------------------
 # 1. Environment & Logging Setup
 # -------------------------------------------------
-load_dotenv()
+load_environment()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -347,11 +349,19 @@ def unsubscribe(token):
 @app.route("/AvailableGames", methods=["GET"])
 def available_games():
     """
-    Serves all games from the local static_data/all_games.json
-    so we don't hit Firestore each time.
+    Serves data from the local static_data all_games_dev.json if ENV=dev,
+    or all_games.json if ENV=prod, so you see the correct DB data.
     """
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    if environment == "production":
+        filename = "all_games.json"
+    else:
+        filename = "all_games_dev.json"
+
+    path = os.path.join("static_data", filename)
+    
     try:
-        with open("static_data/all_games.json", "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         # If the file doesn't exist yet, fallback

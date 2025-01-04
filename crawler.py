@@ -5,13 +5,24 @@ import os
 import re
 import json
 from datetime import datetime, timezone
+
+# Load environment depending on ENVIRONMENT
+from load_env import load_environment
+load_environment()
+
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import firebase_admin
 from firebase_admin import credentials, firestore
-from dotenv import load_dotenv
 import warnings
 
-from util import resolve_path, sanitize, get_current_datetime, send_email, html_game_list, write_static_games_file
+from util import (
+    resolve_path,
+    sanitize,
+    get_current_datetime,
+    send_email,
+    html_game_list,
+    write_static_games_file
+)
 from scraper_utils import (
     setup_browser_context,
     get_random_delay,
@@ -24,8 +35,8 @@ from scraper_utils import (
 # Suppress UserWarnings about Firestore filters
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Load environment variables
-load_dotenv()
+# We already called load_dotenv() inside load_env, so this is optional:
+# load_dotenv()
 
 # Initialize Firebase
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
@@ -49,22 +60,23 @@ except Exception as e:
 
 # Configuration
 CFG = {
-    'headless': False, 
+    'headless': False,
     'width': 1280,
     'height': 800,
     'screenshots_dir': resolve_path('screenshots'),
     'browser_data_dir': resolve_path('browser_data'),
     'timeout': 30000,
-    'max_scrolls': 50, 
+    'max_scrolls': 50,
     'wait_after_cookie': 2000,
     'wait_after_scroll_min': 1500,
     'wait_after_scroll_max': 4000,
-    'browser': 'chromium', 
+    'browser': 'chromium',
 }
 
 # Create necessary directories
 os.makedirs(CFG['screenshots_dir'], exist_ok=True)
 os.makedirs(CFG['browser_data_dir'], exist_ok=True)
+
 
 async def scrape_prime_gaming():
     print(f"{get_current_datetime()} - Starting Prime Gaming scraper...")
@@ -74,36 +86,33 @@ async def scrape_prime_gaming():
 
     async with async_playwright() as p:
         context, page = await setup_browser_context(p, CFG)
-        notify_games = []
 
         try:
             # Rate limiting
             await rate_limiter.wait_if_needed()
 
-            # Navigate to Prime Gaming
             print('Navigating to Prime Gaming homepage...')
             await page.goto('https://gaming.amazon.com/home', wait_until='domcontentloaded')
-            await page.wait_for_timeout(get_random_delay(2000, 4000))  # Wait between 2 to 4 seconds
+            await page.wait_for_timeout(get_random_delay(2000, 4000))
 
-            # Perform human-like mouse movements
             await human_like_mouse_movements(page, CFG['width'], CFG['height'])
             print("Performed human-like mouse movements.")
 
-            # Handle cookie banner with random delays
+            # Handle cookie banner
             accept_cookies_selector = '[aria-label="Cookies usage disclaimer banner"] button:has-text("Accept Cookies")'
             if await page.is_visible(accept_cookies_selector):
-                await page.wait_for_timeout(get_random_delay(500, 1500))  # Wait between 0.5 to 1.5 seconds
+                await page.wait_for_timeout(get_random_delay(500, 1500))
                 await page.click(accept_cookies_selector)
                 print('Accepted cookies.')
-                await page.wait_for_timeout(get_random_delay(1000, 2000))  # Wait between 1 to 2 seconds
+                await page.wait_for_timeout(get_random_delay(1000, 2000))
             else:
                 print('No cookie banner found.')
 
-            # Click Free Games button
+            # Click Free Games
             free_games_button_selector = 'button[data-type="Game"]'
             try:
                 await page.wait_for_selector(free_games_button_selector, timeout=CFG['timeout'])
-                await page.wait_for_timeout(get_random_delay(500, 1500))  # Wait between 0.5 to 1.5 seconds
+                await page.wait_for_timeout(get_random_delay(500, 1500))
                 await page.click(free_games_button_selector)
                 print('Clicked "Free Games" button.')
             except TimeoutError:
@@ -119,11 +128,11 @@ async def scrape_prime_gaming():
                 print('Free games list not loaded.')
                 return
 
-            # Perform scrolling to load all games
-            final_count = await natural_scroll(
-                page, 
-                CFG['max_scrolls'], 
-                CFG['wait_after_scroll_min'], 
+            # Perform scrolling
+            await natural_scroll(
+                page,
+                CFG['max_scrolls'],
+                CFG['wait_after_scroll_min'],
                 CFG['wait_after_scroll_max']
             )
 
@@ -133,56 +142,57 @@ async def scrape_prime_gaming():
             print(f"Total games found: {game_count}")
 
             games_data = []
-
             for i in range(game_count):
-                # Add random delay between processing games
-                await page.wait_for_timeout(get_random_delay(300, 800))  # Wait between 0.3 to 0.8 seconds
-                
+                await page.wait_for_timeout(get_random_delay(300, 800))
                 game = games_list.nth(i)
 
-                # Extract title with retry logic
+                # Title
                 title = 'Unknown Title'
-                for _ in range(3):  # Retry up to 3 times
+                for _ in range(3):
                     try:
                         title_element = game.locator('.item-card-details__body__primary h3')
                         title = await title_element.inner_text(timeout=5000)
                         title = title.strip()
                         break
                     except TimeoutError:
-                        await page.wait_for_timeout(get_random_delay(500, 1000))  # Wait between 0.5 to 1 second
-                
-                if title == 'Unknown Title':
-                    print(f"Failed to extract title for game at index {i}.")
+                        await page.wait_for_timeout(get_random_delay(500, 1000))
 
-                # Extract URL with retry logic
+                # URL
                 url = 'No URL Found'
                 for _ in range(3):
                     try:
-                        url = await game.get_attribute('href')
-                        if url:
-                            if not url.startswith('http'):
-                                url = f'https://gaming.amazon.com{url}'
+                        temp = await game.get_attribute('href')
+                        if temp:
+                            if not temp.startswith('http'):
+                                temp = f'https://gaming.amazon.com{temp}'
+                            url = temp
                             break
-                        await page.wait_for_timeout(get_random_delay(500, 1000))  # Wait between 0.5 to 1 second
+                        await page.wait_for_timeout(get_random_delay(500, 1000))
                     except Exception as e:
                         print(f"Attempt to extract URL failed: {e}")
 
-                # Extract Image URL with retry logic
+                # Image
                 image_url = 'No Image Found'
                 for _ in range(3):
                     try:
                         image_element = game.locator('img.tw-image')
-                        image_url = await image_element.get_attribute('src')
-                        if image_url:
+                        temp_img = await image_element.get_attribute('src')
+                        if temp_img:
+                            image_url = temp_img
                             break
-                        await page.wait_for_timeout(get_random_delay(500, 1000))  # Wait between 0.5 to 1 second
+                        await page.wait_for_timeout(get_random_delay(500, 1000))
                     except Exception as e:
                         print(f"Attempt to extract image URL failed: {e}")
 
-                games_data.append({'title': title, 'url': url, 'imageUrl': image_url})
+                games_data.append({
+                    'title': title or 'Unknown Title',
+                    'url': url,
+                    'imageUrl': image_url
+                })
 
             print(f"Extracted data for {len(games_data)} games.")
-            print('Sample games data:', games_data[:5])
+            if games_data:
+                print('Sample games data:', games_data[:5])
 
             # Update Firestore
             collection_ref = db.collection('prime_free_games')
@@ -191,7 +201,7 @@ async def scrape_prime_gaming():
             for doc in existing_games_snapshot:
                 existing_games[doc.id] = doc.to_dict()
 
-            # Add or update games
+            notify_games = []
             for game in games_data:
                 if (
                     game['title'] == 'Unknown Title'
@@ -221,28 +231,35 @@ async def scrape_prime_gaming():
             print('Firestore database updated successfully.')
             write_static_games_file(db)
 
-            # Take screenshot with random delay
-            await page.wait_for_timeout(get_random_delay(1000, 2000))  # Wait between 1 to 2 seconds
-            final_screenshot_path = resolve_path(
-                CFG['screenshots_dir'],
-                f"free_games_{sanitize(get_current_datetime())}.png"
-            )
-            await page.screenshot(path=final_screenshot_path, full_page=True)
-            print(f"Screenshot saved to {final_screenshot_path}")
-
-            # Send notification email
-            if notify_games:
-                email_content = html_game_list(notify_games)
-                await asyncio.to_thread(send_email, 'Prime Gaming Scraper Notification', email_content)
+            print("Successfully scraped Prime Gaming.")
 
         except Exception as e:
             print('Error during scraping:', e)
-            error_message = f"Prime Gaming scraper encountered an error: {str(e)}"
-            await asyncio.to_thread(send_email, 'Prime Gaming Scraper Error', error_message)
+
+            # On error: TAKE SCREENSHOT + SEND EMAIL
+            screenshot_path = resolve_path(
+                CFG['screenshots_dir'],
+                f"prime_gaming_error_{sanitize(get_current_datetime())}.png"
+            )
+            # Attempt screenshot
+            try:
+                await page.screenshot(path=screenshot_path, full_page=True)
+                print(f"Error screenshot saved to {screenshot_path}")
+            except Exception as ss_err:
+                print(f"Failed to take error screenshot: {ss_err}")
+
+            error_message = f"Prime Gaming scraper encountered an error:\n\n{repr(e)}"
+            await asyncio.to_thread(
+                send_email, 
+                'Prime Gaming Scraper Error',
+                error_message,
+                to="info@weeklygamevault.com"  # Force to info@weeklygamevault.com
+            )
 
         finally:
             await context.close()
             print('Browser closed.')
+
 
 if __name__ == '__main__':
     asyncio.run(scrape_prime_gaming())

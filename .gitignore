@@ -1,4 +1,6 @@
-.env
+config.env
+.env.production
+.env.development
 *.log
 serviceAccountKey.json
 node_modules/
@@ -11,3 +13,4 @@ epic_browser_data
 browser_data_4162
 browser_data_6981
 delete_subscriber.py
+*.pyc

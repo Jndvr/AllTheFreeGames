@@ -7,14 +7,15 @@ import datetime
 from datetime import timezone
 import warnings
 
-from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+# Load environment depending on ENVIRONMENT
+from load_env import load_environment
+load_environment()
+
 # Suppress UserWarnings about Firestore filters
 warnings.filterwarnings("ignore", category=UserWarning)
-
-load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 

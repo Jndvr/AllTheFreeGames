@@ -3,17 +3,20 @@ import json
 import time
 import logging
 import smtplib
+import warnings
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta, timezone
 
-from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-# Load environment variables
-load_dotenv()
+from load_env import load_environment
+load_environment()
+
+# Suppress UserWarnings about Firestore filters
+warnings.filterwarnings("ignore", category=UserWarning)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 

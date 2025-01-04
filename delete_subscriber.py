@@ -6,15 +6,15 @@ import logging
 import argparse
 import warnings
 
-from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Suppress UserWarnings about Firestore filters
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment depending on ENVIRONMENT
+from load_env import load_environment
+load_environment()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

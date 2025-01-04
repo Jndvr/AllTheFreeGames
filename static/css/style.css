@@ -152,6 +152,34 @@ main {
   margin-top: 10px;
 }
 
+.game-navigation .nav-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.game-navigation .nav-list li a {
+  text-decoration: none;
+  color: #007BFF;
+  font-weight: bold;
+}
+
+.game-navigation .nav-list li a:hover {
+  text-decoration: underline;
+}
+
+.back-to-top-link {
+  text-decoration: none;
+  color: #007BFF;
+  font-weight: bold;
+}
+
+.back-to-top-link:hover {
+  text-decoration: underline;
+}
+
 /* ------------------------------
    Footer
 ------------------------------ */

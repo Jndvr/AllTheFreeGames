@@ -5,6 +5,10 @@ import os
 import json
 from datetime import datetime, timezone
 
+# Load environment
+from load_env import load_environment
+load_environment()
+
 from dotenv import load_dotenv
 
 import firebase_admin
@@ -21,8 +25,7 @@ from util import (
 ################################################################################
 # 1) FIRESTORE INITIALIZATION
 ################################################################################
-load_dotenv()
-
+# load_dotenv() # optional if relying on load_env
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if not firebase_credentials:
     print('FIREBASE_CREDENTIALS not found in environment variables.')
@@ -43,10 +46,10 @@ except Exception as e:
     exit(1)
 
 ################################################################################
-# 2) CONFIG FOR PLAYWRIGHT (mirroring JS cfg)
+# 2) CONFIG FOR PLAYWRIGHT
 ################################################################################
 CFG = {
-    'headless': False,  # Set True to hide the browser
+    'headless': False,
     'width': 1280,
     'height': 800,
     'screenshots_dir': resolve_path('screenshots', 'gog'),
@@ -55,39 +58,33 @@ CFG = {
     'max_pagedowns': 10,
     'wait_after_scroll_min': 500,
     'wait_after_scroll_max': 1500,
-    'browser': 'chromium',  # or 'firefox' / 'webkit'
+    'browser': 'chromium',
 }
-
 
 ################################################################################
 # 3) SCRAPE FUNCTION
 ################################################################################
 async def scrape_gog_game_data(cfg) -> list[dict]:
     """
-    Launches a browser with anti-detection measures (via setup_browser_context),
-    opens https://www.gog.com/en, and checks if there's a current free giveaway.
-    Returns a list containing one game dict if found, or an empty list if none.
-    Each dict includes title, url, and imageUrl.
+    Launches a browser, opens https://www.gog.com/en, 
+    checks if there's a current free giveaway (#giveaway).
+    Returns a list with a single dict if found, or empty if none.
     """
     from playwright.async_api import async_playwright
 
     game_data = []
-
     async with async_playwright() as p:
-        # 1) Launch context/page with anti-detection
         context, page = await setup_browser_context(p, cfg)
 
         try:
-            # 2) Go to the main GOG page
             await page.goto("https://www.gog.com/en", wait_until="domcontentloaded")
 
-            # 3) Check if there's a '#giveaway' banner
+            # Check giveaway banner
             banner = page.locator("#giveaway")
             banner_count = await banner.count()
             if banner_count == 0:
                 print("Currently no free giveaway on GOG.")
             else:
-                # Extract the text to find the title
                 text = await banner.locator(".giveaway__content-header").inner_text()
                 pattern = re.compile(r"Claim (.*) and don't miss the|Success! (.*) was added to")
                 match = pattern.search(text)
@@ -99,17 +96,14 @@ async def scrape_gog_game_data(cfg) -> list[dict]:
                 else:
                     title = "Unknown Title"
 
-                # Extract store URL from the banner link
                 url = await banner.locator("a").first.get_attribute("href")
                 if not url:
                     url = "No URL Found"
 
-                # Extract an image from the banner (if present)
                 image_url = await banner.locator("img").first.get_attribute("src")
                 if not image_url:
                     image_url = "No Image Found"
 
-                # Return the found game data as a single-entry list
                 print(f"Found a GOG giveaway: {title} - {url}")
                 game_data.append({
                     "title": title,
@@ -117,43 +111,35 @@ async def scrape_gog_game_data(cfg) -> list[dict]:
                     "imageUrl": image_url
                 })
 
-        except Exception as e:
-            # If something in scraping fails, re-raise so main() can handle it
-            raise e
         finally:
-            # Always close context after finishing
             await context.close()
 
     return game_data
 
-
 ################################################################################
-# 4) MAIN LOGIC: SCRAPE + FIRESTORE + EMAIL ON FAILURE
+# 4) MAIN LOGIC
 ################################################################################
 async def main():
-    notify_games = []
-
     try:
-        # 1) Scrape GOG for the current free game
         games_data = await scrape_gog_game_data(CFG)
 
-        # 2) Firestore collection
         collection_ref = db.collection('gog_giveaway')
         existing_games_snapshot = collection_ref.stream()
         existing_games = {}
         for doc in existing_games_snapshot:
             existing_games[doc.id] = doc.to_dict()
 
-        # 3) If no free game is found, remove all existing entries
         if not games_data:
-            print("No free GOG giveaway found; removing all existing entries in Firestore.")
+            print("No free GOG giveaway found; removing all existing entries.")
             for game_id, game_data in existing_games.items():
                 print(f"Removing: {game_data.get('title', game_id)}")
                 collection_ref.document(game_id).delete()
-            print('Firestore database updated successfully (no current giveaway).')
+
+            print('Firestore updated (no current giveaway).')
             return
 
-        # 4) Otherwise, process the found game(s)
+        # If we found a giveaway
+        notify_games = []
         for game in games_data:
             if (
                 game['title'] == 'Unknown Title'
@@ -167,7 +153,6 @@ async def main():
             if url_match:
                 game_id = sanitize(url_match.group(1))
             else:
-                # fallback
                 game_id = sanitize(game['title'].replace(' ', '_').lower())
 
             if game_id not in existing_games:
@@ -179,7 +164,7 @@ async def main():
                 print(f"Game already exists: {game['title']}")
                 del existing_games[game_id]
 
-        # 5) Remove games no longer free
+        # Remove no-longer-free
         for game_id, game_data in existing_games.items():
             print(f"Removing game no longer free: {game_data.get('title', game_id)}")
             collection_ref.document(game_id).delete()
@@ -187,8 +172,9 @@ async def main():
         print('Firestore database updated successfully.')
         write_static_games_file(db)
 
+        print("GOG giveaway update complete.")
+
     except Exception as e:
-        # If anything fails, send an email to info@weeklygamevault.com
         error_trace = traceback.format_exc()
         subject = "GOG Free Giveaway Script Failure"
         content = (
@@ -197,10 +183,10 @@ async def main():
             f"Traceback:\n{error_trace}\n\n"
         )
 
-        print("Script failed. Sending error email...")
-        send_email(subject, content)
+        print("Script failed. Sending error email to info@weeklygamevault.com...")
+        send_email(subject, content, to="info@weeklygamevault.com")
         print("Email sent. Exiting with error.")
-        raise  # Re-raise so the script returns a non-zero exit code
+        raise
 
 
 if __name__ == "__main__":
