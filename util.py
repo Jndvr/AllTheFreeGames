@@ -108,8 +108,8 @@ def send_email(subject, content, to=None):
 
 def write_static_games_file(db):
     """
-    Reads from prime_free_games, epic_free_games, gog_free_games, gog_giveaway
-    and writes a local JSON file for the /AvailableGames route to serve.
+    Reads from prime_free_games, epic_free_games, gog_free_games, gog_giveaway and
+    steam_games and writes a local JSON file for the /AvailableGames route to serve.
     Converts Firestore timestamps to string to avoid JSON serialization errors.
 
     If ENVIRONMENT=development, writes to 'all_games_dev.json'
@@ -124,7 +124,8 @@ def write_static_games_file(db):
         "prime_games": [],
         "epic_games": [],
         "gog_free": [],
-        "gog_giveaway": []
+        "gog_giveaway": [],
+        "steam_games": []
     }
 
     def doc_to_serializable(doc):
@@ -150,6 +151,10 @@ def write_static_games_file(db):
     # new GOG giveaways
     gog_giveaway_docs = db.collection("gog_giveaway").stream()
     data["gog_giveaway"] = [doc_to_serializable(doc) for doc in gog_giveaway_docs]
+
+    # steam
+    steam_docs = db.collection("steam_free_games").stream()
+    data["steam_games"] = [doc_to_serializable(doc) for doc in steam_docs]
 
     # Decide the output filename by environment
     filename = "all_games.json" if environment == "production" else "all_games_dev.json"

@@ -2,27 +2,34 @@
    Global Variables and Resets
 ------------------------------ */
 :root {
-  --navbar-height: 80px; /* Define a variable for navbar height */
+  --navbar-height: 80px;
+  --primary-color: #ff5722;
+  --primary-hover: #f4511e;
+  --success-color: #28a745;
+  --error-color: #dc3545;
+  --text-color: #2c2c2c;
+  --bg-light: #f8f9fa;
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* Flexbox Layout */
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
-  scroll-behavior: smooth; /* Enables smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: #e0e0e0; /* Default background color */
+  background-color: #e0e0e0;
   color: #2c2c2c;
   font-family: 'Roboto', sans-serif;
   display: flex;
   flex-direction: column;
-  padding-top: var(--navbar-height); /* Prevent navbar overlap */
+  min-height: 100vh;
+  padding-top: var(--navbar-height);
+  position: relative;
 }
 
-/* Use this class on pages that need a different background (e.g. AvailableGames) */
 .page-availablegames {
   background-color: #f4f4f4 !important;
 }
@@ -31,110 +38,269 @@ body {
    Navbar
 ------------------------------ */
 .navbar {
-  background-color: #ffffff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 1.5rem 2rem; /* Increased padding for better spacing */
+  padding: 1.5rem 2rem;
   z-index: 1000;
-  height: var(--navbar-height); /* Ensure navbar height matches the variable */
+  height: var(--navbar-height);
+  transition: all 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .navbar-brand {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: #ff5722 !important;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color) !important;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px);
+}
+
+.navbar-brand i {
+  font-size: 1.2em;
+  color: var(--primary-color);
+}
+
+.navbar-toggler {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  padding: 0.5rem;
+}
+
+.navbar-collapse {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 1rem;
+}
+
+.nav-link {
+  position: relative;
+  padding: 0.5rem 1rem !important;
+  font-weight: 500;
+  color: var(--text-color) !important;
+  transition: all 0.3s ease;
+}
+
+.nav-link i {
+  transition: transform 0.3s ease;
+}
+
+.nav-link:hover i {
+  transform: translateY(-2px);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 2px;
+  background-color: var(--primary-color);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  transform: scaleX(1);
 }
 
 /* ------------------------------
    Main Content
 ------------------------------ */
 main {
-  flex: 1; /* Allows main to grow and push footer down */
-  padding: 20px;
+  flex: 1 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 3rem; /* Added to prevent content from touching footer */
 }
 
 /* ------------------------------
-   Subscribe Card (Index Page)
+   Hero Section
 ------------------------------ */
-.subscribe-card {
-  background-color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.hero-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 80px 0;
+  overflow: hidden;
+}
+
+.min-vh-75 {
+  min-height: 75vh;
+}
+
+.hero-content {
+  padding: 2rem 0;
+}
+
+.hero-image {
+  position: relative;
+}
+
+.floating-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+/* ------------------------------
+   Features Section
+------------------------------ */
+.features-section {
+  background-color: var(--bg-light);
+}
+
+.feature-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  height: 100%;
+  transition: transform 0.3s ease;
+  box-shadow: var(--card-shadow);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.feature-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.feature-link:hover {
+  color: var(--primary-hover);
+}
+
+/* ------------------------------
+   Games Navigation
+------------------------------ */
+.navigation-wrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--card-shadow);
+}
+
+.platform-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.platform-nav li {
+  margin: 0;
+}
+
+.platform-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--bg-light);
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.platform-link:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+/* ------------------------------
+   Games Grid
+------------------------------ */
+.game-section {
   margin-bottom: 3rem;
 }
 
-.subscribe-card .btn-primary {
-  background-color: #ff5722;
-  border: none;
-  transition: background-color 0.3s ease;
-  padding: 0.75rem;
-  font-size: 1rem;
+.section-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
 }
 
-.subscribe-card .btn-primary:hover {
-  background-color: #e64a19;
+.section-header h2 {
+  color: white;
+  margin: 0;
+  font-size: 1.5rem;
 }
 
-/* ------------------------------
-   Form Container (Contact Page)
------------------------------- */
-.form-container {
-  background-color: #ffffff;
-  margin: 20px auto;
-  max-width: 600px;
-  padding: 1.5rem; /* Reduced padding for a slimmer appearance */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-/* ------------------------------
-   Content Wrapper (Privacy / Others)
------------------------------- */
-.content-wrapper {
-  background-color: #ffffff;
-  margin: 20px auto;
-  max-width: 800px;
-  padding: 1.5rem; /* Reduced padding for a slimmer appearance */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* ------------------------------
-   Offer Table (AvailableGames Page)
------------------------------- */
-.offer-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.offer-table td {
-  width: 25%;
-  padding: 1px;
+.game-card {
+  background: #fafafa;
   border: 1px solid #e0e0e0;
-  background-color: #fafafa;
-  vertical-align: top;
-  box-sizing: border-box;
-  text-align: center;
-  height: 180px; /* Adjust card height here if needed */
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.offer-inner-table {
-  border-collapse: collapse;
+.game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.game-image {
+  width: 100%;
+  position: relative;
+  padding-bottom: 60%;
+}
+
+.game-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.offer-inner-table img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 0;
-  max-width: 100%;
+.game-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .game-title {
-  margin: 15px 0 10px;
+  margin: 0 0 1rem 0;
   font-size: 16px;
   color: #333333;
   font-weight: bold;
@@ -142,6 +308,7 @@ main {
 
 .claim-btn {
   display: inline-block;
+  width: 100%;
   padding: 10px 20px;
   background-color: #ff9900;
   color: #ffffff;
@@ -149,95 +316,421 @@ main {
   border-radius: 4px;
   font-size: 16px;
   font-weight: bold;
-  margin-top: 10px;
+  text-align: center;
+  margin-top: auto;
+  transition: all 0.3s ease;
 }
 
-.game-navigation .nav-list {
-  list-style: none;
-  padding: 0;
+.claim-btn:hover {
+  background-color: #cc7a00;
+  transform: translateY(-2px);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* ------------------------------
+   Contact Section
+------------------------------ */
+.contact-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.contact-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+.contact-form .form-control {
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+  padding: 1rem;
+}
+
+.contact-form .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+}
+
+/* ------------------------------
+   Subscribe Section
+------------------------------ */
+.subscribe-section {
+  background-color: white;
+}
+
+.subscribe-card {
+  background: white;
+  border-radius: 20px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+}
+
+.subscription-form .form-control {
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.subscription-form .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+}
+
+.frequency-options {
+  background-color: var(--bg-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.frequency-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-check {
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.form-check:hover {
+  border-color: var(--primary-color);
+}
+
+.form-check-input:checked ~ .form-check-label {
+  color: var(--primary-color);
+}
+
+.form-check-label {
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin: 0;
 }
 
-.game-navigation .nav-list li a {
-  text-decoration: none;
-  color: #007BFF;
-  font-weight: bold;
+/* ------------------------------
+   Privacy Policy
+------------------------------ */
+.privacy-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
-.game-navigation .nav-list li a:hover {
-  text-decoration: underline;
+.policy-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: var(--card-shadow);
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-.back-to-top-link {
-  text-decoration: none;
-  color: #007BFF;
-  font-weight: bold;
+.policy-section {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eee;
 }
 
-.back-to-top-link:hover {
-  text-decoration: underline;
+.policy-section h2 {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.right-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-light);
+  border-radius: 10px;
+}
+
+.right-item i {
+  color: var(--primary-color);
+  font-size: 1.2rem;
 }
 
 /* ------------------------------
    Footer
 ------------------------------ */
 .footer {
-  background-color: #ffffff;
-  padding: 0.5rem 0; /* Reduced padding */
-  text-align: center;
-  color: #6c757d;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  width: 100%;
+  margin-top: auto;
   box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.footer .container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .footer p {
-  margin: 0.25rem 0; /* Reduced margins */
-  font-size: 0.9rem; /* Slightly smaller font size */
-}
-
-.footer a.footer-link {
-  color: #6c757d;
-  text-decoration: underline;
+  margin: 0.25rem 0;
   font-size: 0.9rem;
 }
 
-.footer a.footer-link:hover {
-  color: #333333;
+.footer-link {
+  color: var(--text-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
-/* Hover effect for social media icons in footer */
-.footer .social-icons a.footer-link i {
-  color: #6c757d; /* Default icon color */
-  transition: color 0.3s ease;
+.footer-link:hover {
+  color: var(--primary-color);
+  text-decoration: none;
 }
 
-.footer .social-icons a.footer-link:hover i {
-  color: #0e76a8; /* Example hover color */
+.social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-light);
+  transition: all 0.3s ease;
+}
+
+.social-icons a:hover {
+  background-color: var(--primary-color);
+  color: white !important;
+  transform: translateY(-2px);
 }
 
 /* ------------------------------
-   Responsive Adjustments
+   Back to Top
 ------------------------------ */
+.back-to-top-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  color: var(--primary-color);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+}
+
+.back-to-top-link:hover {
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* ------------------------------
+   Form Elements
+------------------------------ */
+.form-floating > label {
+  padding: 1rem;
+}
+
+.form-floating > .form-control {
+  height: calc(3.5rem + 2px);
+  padding: 1rem;
+}
+
+.form-floating > textarea.form-control {
+  height: auto;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border: none;
+  padding: 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+}
+
+/* ------------------------------
+   Responsive Tweaks
+------------------------------ */
+@media (max-width: 992px) {
+  .games-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .hero-content {
+    text-align: center;
+  }
+  
+  .hero-image {
+    margin-top: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+    height: auto;
+  }
+  
   .navbar-brand {
     font-size: 1.2rem;
   }
-
-  .subscribe-card {
-    padding: 2rem;
+  
+  .navbar-collapse {
+    background-color: rgba(255, 255, 255, 0.98);
+    border-radius: 0 0 1rem 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
-  .form-container {
-    padding: 1rem;
+  .nav-link {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .nav-link::after {
+    bottom: auto;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    left: 0;
+    right: auto;
+    transform: scaleY(0);
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    transform: scaleY(1);
+  }
+  
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .feature-card {
+    padding: 1.5rem;
+  }
+  
+  .subscribe-card,
+  .contact-card,
+  .policy-card {
+    padding: 1.5rem;
+  }
+  
+  .frequency-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-content {
+    padding: 2rem 1rem;
+  }
+  
+  .footer [class*="col-"] {
+    text-align: center !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .platform-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .platform-link {
+    justify-content: center;
+  }
+  
+  .section-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .game-navigation .nav-list {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .games-grid {
+    grid-template-columns: 1fr;
   }
 
   .content-wrapper {
     padding: 1rem;
   }
+  
+  .rights-grid {
+    grid-template-columns: 1fr;
+  }
 
-  /* Switch the 4-column card layout to 2 columns on smaller screens */
-  .offer-table td {
-    width: 50%;
+  .hero-section {
+    padding: 40px 0;
+  }
+
+  .feature-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .frequency-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ------------------------------
+   Print Styles
+------------------------------ */
+@media print {
+  .navbar,
+  .footer,
+  .back-to-top-link {
+    display: none;
+  }
+
+  body {
+    padding: 0;
+    background: white;
+  }
+
+  .content-wrapper {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .game-card {
+    break-inside: avoid;
   }
 }

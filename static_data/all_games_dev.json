@@ -67,12 +67,6 @@
       "url": "https://gaming.amazon.com/dreadout-2-aga/dp/amzn1.pg.item.c90fbab6-a7f2-4e80-8233-632431cf565d?ingress=amzn&ref_=SM_DreadOut2_S01_FGWP_CRWN"
     },
     {
-      "title": "DREDGE",
-      "imageUrl": "https://m.media-amazon.com/images/I/61zvrr3iXGL._FMwebp_.jpg",
-      "createdAt": "2025-01-01T15:03:27.094111+00:00",
-      "url": "https://gaming.amazon.com/dredge-gog/dp/amzn1.pg.item.c2739dbe-88cc-43a3-861b-982aa14dbf22?ingress=amzn&ref_=SM_DREDGE_S01_FGWP_CRWN"
-    },
-    {
       "title": "Duck Paradox",
       "imageUrl": "https://m.media-amazon.com/images/I/711pqJCemrL._FMwebp_.jpg",
       "createdAt": "2025-01-01T15:03:29.094724+00:00",
@@ -137,12 +131,6 @@
       "imageUrl": "https://m.media-amazon.com/images/I/61KHVloUKIL._FMwebp_.jpg",
       "createdAt": "2025-01-01T15:03:28.053056+00:00",
       "url": "https://gaming.amazon.com/neverwinter-nights-gog/dp/amzn1.pg.item.acee8e4d-cbd6-4a9e-add2-b3e52d825c51?ingress=amzn&ref_=SM_NeverwinterNightsEnhancedEdition_S02_FGWP_CRWN"
-    },
-    {
-      "title": "Overcooked! 2",
-      "imageUrl": "https://m.media-amazon.com/images/I/61wwWjkD7iL._FMwebp_.jpg",
-      "createdAt": "2025-01-01T15:03:26.061641+00:00",
-      "url": "https://gaming.amazon.com/overcooked-2-gog/dp/amzn1.pg.item.b6910650-0c3f-4d55-b114-71995e792dc3?ingress=amzn&ref_=SM_Overcooked2_S01_FGWP_CRWN"
     },
     {
       "title": "Planet of Lana",
@@ -239,12 +227,6 @@
       "imageUrl": "https://m.media-amazon.com/images/I/61TMmFiX7RL._FMwebp_.jpg",
       "createdAt": "2025-01-01T15:03:29.788895+00:00",
       "url": "https://gaming.amazon.com/through-the-darkest-of-times-aga/dp/amzn1.pg.item.f7492ab7-439e-4e1c-8439-86323c6fc9db?ingress=amzn&ref_=SM_ThroughtheDarkestofTimes_S02_FGWP_CRWN"
-    },
-    {
-      "title": "Tomb Raider: Underworld",
-      "imageUrl": "https://m.media-amazon.com/images/I/5140NRUSlEL._FMwebp_.jpg",
-      "createdAt": "2025-01-01T15:03:28.211583+00:00",
-      "url": "https://gaming.amazon.com/tomb-raider-underworld-gog/dp/amzn1.pg.item.81e42040-ac4d-4f12-90f0-5dca1413ed6d?ingress=amzn&ref_=SM_TombRaiderUnderworld_S01_FGWP_CRWN"
     }
   ],
   "epic_games": [
@@ -539,5 +521,13 @@
       "url": "https://www.gog.com/en/game/worlds_of_ultima_the_savage_empire"
     }
   ],
-  "gog_giveaway": []
+  "gog_giveaway": [],
+  "steam_games": [
+    {
+      "title": "Black Desert",
+      "imageUrl": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/582660/68da135eec25cdc8348a163b1f068e0004528b77/capsule_sm_120.jpg?t=1735065840",
+      "createdAt": "2025-01-04T23:28:56.722162+00:00",
+      "url": "https://store.steampowered.com/app/582660/Black_Desert/?snr=1_7_7_2300_150_1"
+    }
+  ]
 }

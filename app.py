@@ -369,16 +369,18 @@ def available_games():
             "prime_games": [],
             "epic_games": [],
             "gog_free": [],
-            "gog_giveaway": []
+            "gog_giveaway": [],
+            "steam_games":[]
         }
 
     return render_template(
-        "available_games.html",
-        prime_games=data.get("prime_games", []),
-        epic_games=data.get("epic_games", []),
-        gog_free=data.get("gog_free", []),
-        gog_giveaway=data.get("gog_giveaway", [])
-    )
+    "available_games.html",
+    prime_games=data.get("prime_games", []),
+    epic_games=data.get("epic_games", []),
+    steam_games=data.get("steam_games", []),
+    gog_free=data.get("gog_free", []),
+    gog_giveaway=data.get("gog_giveaway", [])
+)
 
 @app.route("/change-frequency/<token>", methods=["GET", "POST"])
 def change_frequency(token):

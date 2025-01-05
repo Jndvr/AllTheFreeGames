@@ -4,209 +4,177 @@
 {% block body_class %}page-availablegames{% endblock body_class %}
 
 {% block content %}
-<div class="content-wrapper">
-  <h1 class="mb-4 text-center">All Available Free Games</h1>
+<div class="content-wrapper" style="max-width: 1200px; margin: 0 auto; padding: 2rem; background-color: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); border-radius: 8px;">
+  <h1 class="display-4 mb-5 text-center">All Available Free Games</h1>
   
   <!-- Navigation Links -->
   <nav class="game-navigation mb-5">
-    <ul class="nav-list">
-      {% if prime_games %}
-        <li><a href="#prime_games">Prime Gaming</a></li>
-      {% endif %}
-      {% if epic_games %}
-        <li><a href="#epic_games">Epic Games</a></li>
-      {% endif %}
-      {% if gog_free %}
-        <li><a href="#gog_free">GOG Free Games Collection</a></li>
-      {% endif %}
-      {% if gog_giveaway %}
-        <li><a href="#gog_giveaway">GOG Giveaway</a></li>
-      {% endif %}
-    </ul>
+    <div class="navigation-wrapper" style="background-color: #f8f9fa; padding: 1rem; border-radius: 6px; border: 1px solid #dee2e6;">
+      <ul class="platform-nav" style="list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+        {% if prime_games %}
+          <li>
+            <a href="#prime_games" class="platform-link" style="text-decoration: none; color: #495057; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; display: inline-flex; align-items: center; background-color: #ffffff; border: 1px solid #dee2e6;">
+              <i class="fab fa-amazon me-2"></i>Prime Gaming
+            </a>
+          </li>
+        {% endif %}
+        {% if epic_games %}
+          <li>
+            <a href="#epic_games" class="platform-link" style="text-decoration: none; color: #495057; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; display: inline-flex; align-items: center; background-color: #ffffff; border: 1px solid #dee2e6;">
+              <i class="fas fa-gamepad me-2"></i>Epic Games
+            </a>
+          </li>
+        {% endif %}
+        {% if steam_games %}
+          <li>
+            <a href="#steam_games" class="platform-link" style="text-decoration: none; color: #495057; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; display: inline-flex; align-items: center; background-color: #ffffff; border: 1px solid #dee2e6;">
+              <i class="fab fa-steam me-2"></i>Steam
+            </a>
+          </li>
+        {% endif %}
+        {% if gog_free %}
+          <li>
+            <a href="#gog_free" class="platform-link" style="text-decoration: none; color: #495057; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; display: inline-flex; align-items: center; background-color: #ffffff; border: 1px solid #dee2e6;">
+              <i class="fas fa-gift me-2"></i>GOG Free
+            </a>
+          </li>
+        {% endif %}
+        {% if gog_giveaway %}
+          <li>
+            <a href="#gog_giveaway" class="platform-link" style="text-decoration: none; color: #495057; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.3s ease; display: inline-flex; align-items: center; background-color: #ffffff; border: 1px solid #dee2e6;">
+              <i class="fas fa-star me-2"></i>GOG Giveaway
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
   </nav>
 
   <!-- Prime Gaming -->
   {% if prime_games %}
-    <section id="prime_games">
-      <h2>Prime Gaming</h2> 
-      <table class="offer-table">
-        {% set columns = 4 %}
-        {% set total = prime_games|length %}
-        {% for i in range(total) %}
-          {% if i % columns == 0 %}<tr>{% endif %}
-          {% set g = prime_games[i] %}
-          <td>
-            <table class="offer-inner-table">
-              <tr style="vertical-align: top;">
-                <td align="center" style="padding:0;">
-                  <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
-                  <p class="game-title">{{ g.title }}</p>
-                </td>
-              </tr>
-              <tr style="vertical-align: bottom;">
-                <td align="center" style="padding:0;">
-                  <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-          {% if (i + 1) % columns == 0 or i == total - 1 %}</tr>{% endif %}
+    <section id="prime_games" class="game-section" style="margin-bottom: 3rem;">
+      <div class="section-header" style="border-bottom: 2px solid #ff9900; margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 style="color: #343a40;"><i class="fab fa-amazon me-2"></i>Prime Gaming</h2>
+      </div>
+      <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        {% for g in prime_games %}
+          <div class="game-card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background-color: #ffffff; transition: transform 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="game-image" style="aspect-ratio: 16/9; overflow: hidden;">
+              <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="game-content" style="padding: 1rem;">
+              <h3 class="game-title" style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #343a40;">{{ g.title }}</h3>
+              <a href="{{ g.url }}" class="claim-btn" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; background-color: #ff9900; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+                <i class="fas fa-external-link-alt me-2"></i>Claim here
+              </a>
+            </div>
+          </div>
         {% endfor %}
-      </table>
-      <br>
+      </div>
     </section>
   {% endif %}
 
   <!-- Epic Games -->
   {% if epic_games %}
-   <!-- Navigation Links -->
-   <nav class="game-navigation mb-5">
-    <ul class="nav-list">
-      {% if prime_games %}
-        <li><a href="#prime_games">Prime Gaming</a></li>
-      {% endif %}
-      {% if epic_games %}
-        <li><a href="#epic_games">Epic Games</a></li>
-      {% endif %}
-      {% if gog_free %}
-        <li><a href="#gog_free">GOG Free Games Collection</a></li>
-      {% endif %}
-      {% if gog_giveaway %}
-        <li><a href="#gog_giveaway">GOG Giveaway</a></li>
-      {% endif %}
-    </ul>
-  </nav>
-    <section id="epic_games">
-      <h2>Epic Games</h2>
-      <table class="offer-table">
-        {% set columns = 4 %}
-        {% set total_epic = epic_games|length %}
-        {% for i in range(total_epic) %}
-          {% if i % columns == 0 %}<tr>{% endif %}
-          {% set g = epic_games[i] %}
-          <td>
-            <table class="offer-inner-table">
-              <tr style="vertical-align: top;">
-                <td align="center" style="padding:0;">
-                  <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
-                  <p class="game-title">{{ g.title }}</p>
-                </td>
-              </tr>
-              <tr style="vertical-align: bottom;">
-                <td align="center" style="padding:0;">
-                  <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-          {% if (i + 1) % columns == 0 or i == total_epic - 1 %}</tr>{% endif %}
+    <section id="epic_games" class="game-section" style="margin-bottom: 3rem;">
+      <div class="section-header" style="border-bottom: 2px solid #313131; margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 style="color: #343a40;"><i class="fas fa-gamepad me-2"></i>Epic Games</h2>
+      </div>
+      <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        {% for g in epic_games %}
+          <div class="game-card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background-color: #ffffff; transition: transform 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="game-image" style="aspect-ratio: 16/9; overflow: hidden;">
+              <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="game-content" style="padding: 1rem;">
+              <h3 class="game-title" style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #343a40;">{{ g.title }}</h3>
+              <a href="{{ g.url }}" class="claim-btn" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; background-color: #313131; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+                <i class="fas fa-external-link-alt me-2"></i>Claim here
+              </a>
+            </div>
+          </div>
         {% endfor %}
-      </table>
-      <br>
+      </div>
     </section>
   {% endif %}
 
-  <!-- GOG Free Games Collection -->
-  {% if gog_free %}
-    <!-- Navigation Links -->
-    <nav class="game-navigation mb-5">
-        <ul class="nav-list">
-          {% if prime_games %}
-            <li><a href="#prime_games">Prime Gaming</a></li>
-          {% endif %}
-          {% if epic_games %}
-            <li><a href="#epic_games">Epic Games</a></li>
-          {% endif %}
-          {% if gog_free %}
-            <li><a href="#gog_free">GOG Free Games Collection</a></li>
-          {% endif %}
-          {% if gog_giveaway %}
-            <li><a href="#gog_giveaway">GOG Giveaway</a></li>
-          {% endif %}
-        </ul>
-      </nav>
-    <section id="gog_free">
-      <h2>GOG Free Games Collection</h2>
-      <table class="offer-table">
-        {% set columns = 4 %}
-        {% set total_free = gog_free|length %}
-        {% for i in range(total_free) %}
-          {% if i % columns == 0 %}<tr>{% endif %}
-          {% set g = gog_free[i] %}
-          <td>
-            <table class="offer-inner-table">
-              <tr style="vertical-align: top;">
-                <td align="center" style="padding:0;">
-                  <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
-                  <p class="game-title">{{ g.title }}</p>
-                </td>
-              </tr>
-              <tr style="vertical-align: bottom;">
-                <td align="center" style="padding:0;">
-                  <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-          {% if (i + 1) % columns == 0 or i == total_free - 1 %}</tr>{% endif %}
+  <!-- Steam -->
+  {% if steam_games %}
+    <section id="steam_games" class="game-section" style="margin-bottom: 3rem;">
+      <div class="section-header" style="border-bottom: 2px solid #1b2838; margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 style="color: #343a40;"><i class="fab fa-steam me-2"></i>Steam</h2>
+      </div>
+      <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        {% for g in steam_games %}
+          <div class="game-card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background-color: #ffffff; transition: transform 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="game-image" style="aspect-ratio: 16/9; overflow: hidden;">
+              <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="game-content" style="padding: 1rem;">
+              <h3 class="game-title" style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #343a40;">{{ g.title }}</h3>
+              <a href="{{ g.url }}" class="claim-btn" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; background-color: #1b2838; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+                <i class="fas fa-external-link-alt me-2"></i>Claim here
+              </a>
+            </div>
+          </div>
         {% endfor %}
-      </table>
-      <br>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- GOG Free Games -->
+  {% if gog_free %}
+    <section id="gog_free" class="game-section" style="margin-bottom: 3rem;">
+      <div class="section-header" style="border-bottom: 2px solid #5c2d91; margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 style="color: #343a40;"><i class="fas fa-gift me-2"></i>GOG Free</h2>
+      </div>
+      <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        {% for g in gog_free %}
+          <div class="game-card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background-color: #ffffff; transition: transform 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="game-image" style="aspect-ratio: 16/9; overflow: hidden;">
+              <img class="gog-free-img" src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="game-content" style="padding: 1rem;">
+              <h3 class="game-title" style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #343a40;">{{ g.title }}</h3>
+              <a href="{{ g.url }}" class="claim-btn" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; background-color: #5c2d91; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+                <i class="fas fa-external-link-alt me-2"></i>Claim here
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
     </section>
   {% endif %}
 
   <!-- GOG Giveaway -->
   {% if gog_giveaway %}
-      <!-- Navigation Links -->
-  <nav class="game-navigation mb-5">
-    <ul class="nav-list">
-      {% if prime_games %}
-        <li><a href="#prime_games">Prime Gaming</a></li>
-      {% endif %}
-      {% if epic_games %}
-        <li><a href="#epic_games">Epic Games</a></li>
-      {% endif %}
-      {% if gog_free %}
-        <li><a href="#gog_free">GOG Free Games Collection</a></li>
-      {% endif %}
-      {% if gog_giveaway %}
-        <li><a href="#gog_giveaway">GOG Giveaway</a></li>
-      {% endif %}
-    </ul>
-  </nav>
-    <section id="gog_giveaway">
-      <h2>GOG Giveaway</h2>
-      <table class="offer-table">
-        {% set columns = 4 %}
-        {% set total_giveaway = gog_giveaway|length %}
-        {% for i in range(total_giveaway) %}
-          {% if i % columns == 0 %}<tr>{% endif %}
-          {% set g = gog_giveaway[i] %}
-          <td>
-            <table class="offer-inner-table">
-              <tr style="vertical-align: top;">
-                <td align="center" style="padding:0;">
-                  <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}">
-                  <p class="game-title">{{ g.title }}</p>
-                </td>
-              </tr>
-              <tr style="vertical-align: bottom;">
-                <td align="center" style="padding:0;">
-                  <a href="{{ g.url }}" class="claim-btn" target="_blank">Claim here</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-          {% if (i + 1) % columns == 0 or i == total_giveaway - 1 %}</tr>{% endif %}
+    <section id="gog_giveaway" class="game-section" style="margin-bottom: 3rem;">
+      <div class="section-header" style="border-bottom: 2px solid #5c2d91; margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 style="color: #343a40;"><i class="fas fa-star me-2"></i>GOG Giveaway</h2>
+      </div>
+      <div class="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        {% for g in gog_giveaway %}
+          <div class="game-card" style="border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background-color: #ffffff; transition: transform 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="game-image" style="aspect-ratio: 16/9; overflow: hidden;">
+              <img src="{{ g.imageUrl|default('#') }}" alt="{{ g.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="game-content" style="padding: 1rem;">
+              <h3 class="game-title" style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #343a40;">{{ g.title }}</h3>
+              <a href="{{ g.url }}" class="claim-btn" target="_blank" style="display: inline-block; padding: 0.5rem 1rem; background-color: #5c2d91; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+                <i class="fas fa-external-link-alt me-2"></i>Claim here
+              </a>
+            </div>
+          </div>
         {% endfor %}
-      </table>
-      <br>
+      </div>
     </section>
   {% endif %}
 
   <!-- Back to Top Link -->
-  <div class="back-to-top text-center mt-5">
-    <a href="#top" class="back-to-top-link">Back to Top</a>
+  <div class="back-to-top text-center mt-5" style="margin-top: 2rem;">
+    <a href="#top" class="back-to-top-link" style="display: inline-block; padding: 0.5rem 1rem; background-color: #6c757d; color: #ffffff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease;">
+      <i class="fas fa-arrow-up me-2"></i>Back to Top
+    </a>
   </div>
 </div>
 {% endblock content %}
