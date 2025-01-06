@@ -37,9 +37,10 @@ if not TELEGRAM_BOT_TOKEN:
     logging.error("TELEGRAM_BOT_TOKEN not found in environment variables.")
     exit(1)
 
-# Initialize bot
+# Initialize bot and track start time
 bot = None
 application = None
+BOT_START_TIME = None
 
 # Rate limiting settings
 MESSAGE_RATE = 1  # messages per second
@@ -144,8 +145,23 @@ def watch_collection(collection_name):
         for change in changes:
             if change.type.name == 'ADDED':
                 game = change.document.to_dict()
-                logging.info(f"New game detected in {collection_name}: {game.get('title')}")
-                background_loop.create_task(notify_subscribers(game, collection_name))
+                
+                # Get the update time from Firestore metadata
+                update_time = change.document.update_time
+                
+                # Convert to UTC for comparison
+                if update_time:
+                    update_time = update_time.replace(tzinfo=timezone.utc)
+                    
+                    if update_time > BOT_START_TIME:
+                        logging.info(f"New game detected in {collection_name}: {game.get('title')}")
+                        background_loop.create_task(notify_subscribers(game, collection_name))
+                    else:
+                        logging.info(f"Skipping notification for existing game in {collection_name}: {game.get('title')}")
+                        logging.info(f"Game update time: {update_time}")
+                        logging.info(f"Bot started at: {BOT_START_TIME}")
+                else:
+                    logging.warning(f"No update time available for game: {game.get('title')}")
 
     try:
         collection_ref = db.collection(collection_name)
@@ -314,7 +330,6 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🤖 *WeeklyGameVault Bot*\n\n"
         "This bot keeps you updated with the latest free game offers from various platforms like Prime Gaming Steam, Epic Games and GOG.\n\n"
         "Developed by [WeeklyGameVault](https://www.weeklygamevault.com).\n\n"
-        
     )
     await update.message.reply_text(
         about_text,
@@ -325,14 +340,13 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /help command."""
     help_text = (
-        "🛠 *Available Commands*\n\n"
-        "/help \- Shows this help message\n"
-        "/about \- Learn about WeeklyGameVault Bot\n"
-        "/subscribe \- Start receiving free game notifications\n"
-        "/unsubscribe \- Stop receiving notifications\n"
-        "/status \- View your subscription details\n"
-        "/delete\_me \- Permanently remove all your data"
-
+        "🛠 *Available Commands*\\n\\n"
+        "/help \\- Shows this help message\\n"
+        "/about \\- Learn about WeeklyGameVault Bot\\n"
+        "/subscribe \\- Start receiving free game notifications\\n"
+        "/unsubscribe \\- Stop receiving notifications\\n"
+        "/status \\- View your subscription details\\n"
+        "/delete\\_me \\- Permanently remove all your data"
     )
     
     await update.message.reply_text(
@@ -356,9 +370,8 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         active_count = sum(1 for _ in active_subscribers)
 
         stats_message = (
-            "*📊 Bot Statistics:*\n\n"
-            f"*Active Subscribers:* {active_count}\n"
-
+            "*📊 Bot Statistics:*\\n\\n"
+            f"*Active Subscribers:* {active_count}\\n"
         )
         await update.message.reply_text(
             stats_message,
@@ -370,10 +383,13 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         send_error_email(str(e), error_trace)
         await update.message.reply_text("There was a problem fetching the statistics.")
 
-
 def main():
     try:
-        global bot, application
+        global bot, application, BOT_START_TIME
+        
+        # Set bot start time
+        BOT_START_TIME = datetime.now(timezone.utc)
+        logging.info(f"Bot starting at: {BOT_START_TIME}")
 
         # Create the Application
         application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
