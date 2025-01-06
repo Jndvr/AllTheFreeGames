@@ -12,7 +12,7 @@
 
       <div class="policy-content">
         <div class="policy-intro mb-5">
-          <p class="lead">This privacy policy explains how we process your personal data in connection with the sending of our newsletter and the operation of our website.</p>
+          <p class="lead">This privacy policy explains how we process your personal data in connection with the sending of our newsletter, the operation of our website, and our Telegram bot service.</p>
         </div>
 
         <div class="policy-sections">
@@ -21,6 +21,14 @@
             <div class="ps-4 mt-3">
               <h3>Newsletter Subscription</h3>
               <p>When you subscribe to our newsletter, we collect your email address. This is used exclusively for sending the newsletter.</p>
+
+              <h3>Telegram Bot Service</h3>
+              <p>When you interact with our Telegram bot, we collect and process:</p>
+              <ul class="feature-list">
+                <li><i class="fas fa-check"></i>Your Telegram chat ID</li>
+                <li><i class="fas fa-check"></i>Subscription status (active/inactive)</li>
+                <li><i class="fas fa-check"></i>Timestamps of subscription, unsubscription, and data deletion requests</li>
+              </ul>
             </div>
           </section>
 
@@ -29,6 +37,9 @@
             <div class="ps-4 mt-3">
               <h3>Newsletter Subscription</h3>
               <p>The legal basis for processing your email address is your voluntarily given consent in accordance with Art. 6 para. 1 lit. a GDPR.</p>
+
+              <h3>Telegram Bot Service</h3>
+              <p>The processing of your Telegram data is based on your explicit consent, which you provide by accepting this privacy policy when using the /subscribe command.</p>
             </div>
           </section>
 
@@ -45,11 +56,19 @@
           <section class="policy-section">
             <h2><i class="fas fa-clock me-2"></i>Storage Duration</h2>
             <p>Your data will be stored for as long as you have subscribed to the newsletter. After you unsubscribe, your email address will be removed from the distribution list.</p>
+
+            <h3>Telegram Bot Data</h3>
+            <ul class="feature-list">
+              <li><i class="fas fa-check"></i>Active subscribers: Data is retained while subscription is active</li>
+              <li><i class="fas fa-check"></i>Unsubscribed users: Data is retained with inactive status until deletion is requested</li>
+              <li><i class="fas fa-check"></i>Upon using /delete_me command: All personal data is permanently deleted</li>
+            </ul>
           </section>
 
           <section class="policy-section">
             <h2><i class="fas fa-exchange-alt me-2"></i>Data Transfer</h2>
             <p>Your data will not be passed on to third parties, except as necessary for the operation of our services (e.g., using Google Analytics for website analytics).</p>
+            <p>For Telegram bot users, your data is stored securely in Google Firebase and is only accessed to provide the notification service.</p>
           </section>
 
           <section class="policy-section">
@@ -88,6 +107,8 @@
             <ul class="feature-list">
               <li><i class="fas fa-check"></i>Clicking the unsubscribe link in any newsletter</li>
               <li><i class="fas fa-check"></i>Emailing us at <a href="mailto:info@WeeklyGameVault.com">info@WeeklyGameVault.com</a></li>
+              <li><i class="fas fa-check"></i>Using the /unsubscribe command in the Telegram bot</li>
+              <li><i class="fas fa-check"></i>Using the /delete_me command to completely remove your Telegram data</li>
             </ul>
           </section>
 
