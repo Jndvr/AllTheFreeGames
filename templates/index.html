@@ -14,7 +14,11 @@
 {% endblock meta %}
 
 {% block content %}
-<!-- Hero Section -->
+<!-- Set the GAMES_JSON_PATH as a global JavaScript variable -->
+<script>
+    window.GAMES_JSON_PATH = "{{ games_json_path }}"
+</script>
+
 <section class="hero-section" id="about">
   <div class="container">
     <div class="row align-items-center min-vh-75">
@@ -26,11 +30,7 @@
         <a href="#subscribe" class="btn btn-primary btn-lg mb-4">Get Started</a>
       </div>
       <div class="col-lg-6 hero-image">
-        <img
-          src="{{ url_for('static', filename='images/vault.png') }}"
-          alt="Vault filled with games in pixel art"
-          class="img-fluid floating-animation"
-        >
+        <div id="game-slideshow" class="shadow-lg rounded-lg overflow-hidden"></div>
       </div>
     </div>
   </div>
@@ -219,6 +219,11 @@
 
 {% block extra_scripts %}
 <script>
+  // Set the GAMES_JSON_PATH as a global variable
+  window.GAMES_JSON_PATH = "{{ games_json_path }}"
+</script>
+
+<script>
   // Newsletter Form Submission
   document
     .getElementById("newsletterForm")
@@ -279,4 +284,6 @@
       }
     });
 </script>
+<!-- Load the slideshow script -->
+<script src="{{ url_for('static', filename='js/game-slideshow.js') }}" defer></script>
 {% endblock extra_scripts %}
