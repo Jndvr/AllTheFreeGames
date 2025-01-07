@@ -140,14 +140,43 @@ main {
   overflow: hidden;
   background: black;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative; /* For positioning fade overlay */
 }
 
+/* Fade Transition Classes */
+.fade-transition {
+  transition: opacity 1s ease-in-out;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+/* Ensure the <a> tag inside the slideshow has a black background */
+.hero-image #game-slideshow a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: black; /* Prevent white background during transitions */
+  text-decoration: none; /* Remove underline from links */
+}
+
+/* Remove default padding/margin if any */
+.hero-image #game-slideshow a img {
+  display: block;
+}
+
+/* Existing Image Styles */
 #game-slideshow img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: opacity 0.5s ease-in-out;
+  /* Removed transition here as it's handled via classes */
 }
 
 @media (max-width: 768px) {
@@ -155,6 +184,7 @@ main {
       margin-top: 2rem;
   }
 }
+
 .min-vh-75 {
   min-height: 75vh;
 }
