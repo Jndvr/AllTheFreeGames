@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}RSS Feed | Weekly Game Vault{% endblock %}
+
+{% block content %}
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-rss text-primary me-2"></i>
+                        RSS Feed
+                    </h1>
+                    <p class="lead text-muted">Never miss a free game! Subscribe to our RSS feed and get instant updates.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="subscribe-card">
+                    <div class="steps-section mb-5">
+                        <h2 class="h4 mb-4">How to Subscribe</h2>
+                        <div class="steps-grid">
+                            <div class="feature-card mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                </div>
+                                <h3 class="h5 mb-3">1. Copy the RSS Feed URL</h3>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ rss_url }}" readonly>
+                                    <button class="btn btn-primary" onclick="navigator.clipboard.writeText('{{ rss_url }}')" type="button">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="feature-card mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-rss-square"></i>
+                                    </div>
+                                </div>
+                                <h3 class="h5 mb-3">2. Choose Your RSS Reader</h3>
+                                <p class="mb-4">Use your preferred RSS reader to subscribe. Here are some popular options:</p>
+                                <div class="d-grid gap-3">
+                                    <a href="https://feedly.com/i/subscription/feed/{{ rss_url }}" 
+                                       class="btn btn-outline-primary" 
+                                       target="_blank">
+                                        <i class="fas fa-external-link-alt me-2"></i>
+                                        Subscribe with Feedly
+                                    </a>
+                                    <a href="https://www.inoreader.com/feed/{{ rss_url }}"
+                                       class="btn btn-outline-primary"
+                                       target="_blank">
+                                        <i class="fas fa-external-link-alt me-2"></i>
+                                        Subscribe with Inoreader
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="feature-card">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                </div>
+                                <h3 class="h5 mb-3">3. Start Receiving Updates</h3>
+                                <p class="mb-4">You'll now receive notifications whenever we post new free games!</p>
+                                <a href="{{ rss_url }}" class="btn btn-primary w-100" target="_blank">
+                                    <i class="fas fa-rss me-2"></i>
+                                    Preview RSS Feed
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block extra_scripts %}
+<script>
+    // Add a toast notification when the copy button is clicked
+    document.querySelector('.btn-copy').addEventListener('click', function() {
+        // You could add a toast notification here if desired
+        this.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fas fa-copy"></i>';
+        }, 2000);
+    });
+</script>
+{% endblock extra_scripts %}

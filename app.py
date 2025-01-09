@@ -88,6 +88,30 @@ env = Environment(
 # -------------------------------------------------
 # 5. Helper Functions
 # -------------------------------------------------
+def load_games_data():
+    """Load games data from the appropriate JSON file."""
+    filename = 'all_games.json' if environment == "production" else 'all_games_dev.json'
+    filepath = os.path.join("static_data", filename)
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logging.info(f"Loaded games data from {filename}")
+        return data
+    except FileNotFoundError:
+        logging.error(f"JSON file not found: {filename}")
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON file {filename}: {e}")
+
+    # Return empty data if loading fails
+    return {
+        "prime_games": [],
+        "epic_games": [],
+        "steam_games": [],
+        "gog_free": [],
+        "gog_giveaway": []
+    }
+
 def is_valid_email(email: str) -> bool:
     """Check if the email has a valid format."""
     return bool(EMAIL_REGEX.match(email))
@@ -222,13 +246,6 @@ def get_static_data(filename):
     except Exception as e:
         logging.error(f"Error serving file {filename}: {e}")
         return jsonify({"error": "Internal server error."}), 500
-
-@app.route("/api/games", methods=["GET"])
-@limiter.limit("60 per minute")
-def get_games():
-    """Deprecated: This route is no longer used for the slideshow."""
-    logging.info("Deprecated /api/games endpoint accessed.")
-    return jsonify({"error": "This endpoint is deprecated."}), 410  # 410 Gone
 
 @app.route("/PrivacyPolicy", methods=["GET"])
 def privacy_policy():
@@ -513,6 +530,29 @@ def change_frequency(token):
         except Exception as e:
             logging.error(f"Error updating frequency with token {token}: {e}")
             return "Internal server error.", 500
+        
+# -------------------------------------------------
+# RSS Feed Routes
+# -------------------------------------------------
+@app.route("/rss_feed_raw.xml", methods=["GET"])
+def rss_feed_raw():
+    """Generate and serve the raw RSS feed."""
+    games_data = load_games_data()
+    last_build_date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')
+
+    # Render the raw RSS feed template
+    rss_content = render_template(
+        "rss_feed.xml",
+        games_data=games_data,
+        last_build_date=last_build_date
+    )
+    return make_response(rss_content, 200, {"Content-Type": "application/rss+xml"})
+
+@app.route("/rss", methods=["GET"])
+def rss_feed():
+    """Render the RSS feed subscription guide."""
+    rss_url = f"{base_url}/rss_feed_raw.xml"
+    return render_template("rss_feed.html", rss_url=rss_url)
 
 # -------------------------------------------------
 # 7. Main Entry Point

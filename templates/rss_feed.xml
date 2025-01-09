@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Weekly Game Vault</title>
+    <link>http://127.0.0.1:5001</link>
+    <description>Stay updated with the latest free games!</description>
+    <lastBuildDate>{{ last_build_date }}</lastBuildDate>
+    <language>en-us</language>
+
+    {% for platform, games in games_data.items() %}
+      {% if games %}
+        {% for game in games %}
+        <item>
+          <title>{{ game.title }}</title>
+          <link>{{ game.url }}</link>
+          <description>{{ game.description | default('A new free game is available!') }}</description>
+          {% if game.imageUrl %}
+          <enclosure url="{{ game.imageUrl }}" type="image/jpeg" />
+          {% endif %}
+        </item>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+  </channel>
+</rss>
