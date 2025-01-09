@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Weekly Game Vault</title>
     <link>http://127.0.0.1:5001</link>
     <description>Stay updated with the latest free games!</description>
     <lastBuildDate>{{ last_build_date }}</lastBuildDate>
     <language>en-us</language>
+    <atom:link href="http://127.0.0.1:5001/rss_feed.xml" rel="self" type="application/rss+xml" />
 
     {% for platform, games in games_data.items() %}
       {% if games %}
@@ -14,8 +15,9 @@
           <title>{{ game.title }}</title>
           <link>{{ game.url }}</link>
           {% if game.imageUrl %}
-          <enclosure url="{{ game.imageUrl }}" type="image/jpeg" />
+          <enclosure url="{{ game.imageUrl }}" type="image/jpeg" length="12345" />
           {% endif %}
+          <guid isPermaLink="false">{{ game.url }}</guid>
         </item>
         {% endfor %}
       {% endif %}
