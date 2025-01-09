@@ -13,7 +13,6 @@
         <item>
           <title>{{ game.title }}</title>
           <link>{{ game.url }}</link>
-          <description>{{ game.description | default('A new free game is available!') }}</description>
           {% if game.imageUrl %}
           <enclosure url="{{ game.imageUrl }}" type="image/jpeg" />
           {% endif %}
