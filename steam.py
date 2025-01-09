@@ -71,6 +71,47 @@ CFG = {
 os.makedirs(CFG['screenshots_dir'], exist_ok=True)
 os.makedirs(CFG['browser_data_dir'], exist_ok=True)
 
+async def delete_all_firestore_entries(collection_ref, reason=""):
+    """
+    Deletes all documents in the specified Firestore collection.
+    Optionally logs the reason for deletion.
+    """
+    try:
+        existing_games_snapshot = collection_ref.stream()
+        delete_tasks = []
+        for doc in existing_games_snapshot:
+            print(f"Deleting game: {doc.id} - {doc.to_dict().get('title', 'No Title')}")
+            delete_tasks.append(collection_ref.document(doc.id).delete())
+        await asyncio.gather(*delete_tasks)
+        print("All entries deleted from Firestore.")
+
+        # Optionally, log this event or update a status collection
+        status_ref = db.collection('scrape_status').document('steam')
+        status_ref.set({
+            'last_scrape': datetime.now(timezone.utc),
+            'status': 'No games found or failed to load results',
+            'reason': reason,
+            'games_found': 0
+        })
+
+        # Write the static games file (which will now be empty)
+        write_static_games_file(db)
+
+    except Exception as delete_err:
+        print(f"Error while deleting entries from Firestore: {delete_err}")
+        # Send an email notification about the failure
+        error_message = f"Steam scraper encountered an issue ({reason}) and attempted to delete all entries, but encountered an error:\n\n{repr(delete_err)}"
+        try:
+            await asyncio.to_thread(
+                send_email,
+                'Steam Scraper Deletion Error',
+                error_message,
+                to="info@weeklygamevault.com"
+            )
+            print("[Email] Sent successfully to info@weeklygamevault.com.")
+        except Exception as email_err:
+            print(f"Failed to send error email: {email_err}")
+
 async def scrape_steam():
     """
     Scrapes Steam for free-to-play or free-to-own games and updates Firestore.
@@ -85,6 +126,8 @@ async def scrape_steam():
 
     async with async_playwright() as p:
         context, page = await setup_browser_context(p, CFG)
+
+        collection_ref = db.collection('steam_free_games')  # Initialize Firestore collection reference
 
         try:
             # Rate limiting
@@ -121,7 +164,9 @@ async def scrape_steam():
                 print('Steam free games search results loaded.')
             except PlaywrightTimeoutError:
                 print('Steam free games search results did not load.')
-                return
+                # **New Logic:** Delete Firestore entries due to failure to load search results
+                await delete_all_firestore_entries(collection_ref, reason="Failed to load search results")
+                return  # Exit the function since no results were loaded
 
             # Perform scrolling to load more results
             await natural_scroll(
@@ -183,8 +228,14 @@ async def scrape_steam():
             if games_data:
                 print('Sample games data:', games_data[:5])
 
-            # Update Firestore
-            collection_ref = db.collection('steam_free_games')
+            if not games_data:
+                # **New Logic:** Delete Firestore entries because no games were extracted
+                print("No games data extracted. Proceeding to delete all entries in Firestore.")
+                await delete_all_firestore_entries(collection_ref, reason="No games data extracted")
+                return  # Exit the function since there's no data to process
+
+            # **Existing Logic Continues Here:** Update Firestore with new games
+
             existing_games_snapshot = collection_ref.stream()
             existing_games = {}
             for doc in existing_games_snapshot:
@@ -243,12 +294,16 @@ async def scrape_steam():
                 print(f"Failed to take error screenshot: {ss_err}")
 
             error_message = f"Steam scraper encountered an error:\n\n{repr(e)}"
-            await asyncio.to_thread(
-                send_email,
-                'Steam Scraper Error',
-                error_message,
-                to="info@weeklygamevault.com"
-            )
+            try:
+                await asyncio.to_thread(
+                    send_email,
+                    'Steam Scraper Error',
+                    error_message,
+                    to="info@weeklygamevault.com"
+                )
+                print("[Email] Sent successfully to info@weeklygamevault.com.")
+            except Exception as email_err:
+                print(f"Failed to send error email: {email_err}")
         finally:
             await context.close()
             print('Browser closed.')
