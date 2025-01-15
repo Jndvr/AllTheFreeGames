@@ -14,6 +14,7 @@ load_environment()
 import firebase_admin
 from firebase_admin import credentials, firestore
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from mail_counter import MailCounter
 
 # Suppress UserWarnings about Firestore filters
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -26,7 +27,10 @@ gmail_username = os.getenv("GMAIL_USERNAME", "")
 gmail_app_password = os.getenv("GMAIL_APP_PASSWORD", "")
 from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
-logo_url = os.getenv("LOGO_URL", "https://example.com/weeklygamevault_logo.png")  # Ensure LOGO_URL is set in .env
+logo_url = os.getenv("LOGO_URL", "https://example.com/weeklygamevault_logo.png")
+
+# Initialize mail counter
+mail_counter = MailCounter()
 
 def initialize_firebase():
     global db
@@ -195,72 +199,76 @@ def send_new_games_email(to_email, confirm_token, html_content, text_content):
         logging.error(f"Failed to send new games newsletter to {to_email}: {e}")
 
 def run_new_games_newsletter():
-    """
-    1) Grab last_run_time from Firestore (config/newGamesNewsletter).
-    2) Query prime_free_games, epic_free_games, and gog_giveaway with createdAt > last_run_time.
-    3) Send the newsletter only to subscribers with frequency in ["newgame", "both"] AND confirmed = True.
-    4) If we send to at least one subscriber, update last_run_time to now.
-    """
+    """Main newsletter function with partial send support"""
     logging.info("Starting new games newsletter job...")
 
     if not db:
         logging.error("DB not initialized. Exiting.")
         return
 
-    # 1) Read last_run_time
     last_run_time = fetch_last_run_time()
-
-    # 2) Build new games list
     new_games = build_new_games_list(last_run_time)
+    
     if not new_games["prime_games"] and not new_games["epic_games"] and not new_games["gog_games"]:
         logging.info("No newly added games found since last_run_time. Exiting.")
         return
 
-    # Build text version
     text_content = build_text_list(new_games)
     current_year = time.strftime("%Y")
 
-    # 3) Fetch subscribers with frequency in ["newgame", "both"], confirmed = True
     try:
-        subscribers = db.collection("newsletter_subscribers") \
-                        .where("frequency", "in", ["newgame", "both"]) \
-                        .where("confirmed", "==", True) \
-                        .stream()
+        subscribers = list(db.collection("newsletter_subscribers")
+            .where("frequency", "in", ["newgame", "both"])
+            .where("confirmed", "==", True)
+            .stream())
+        
+        subscriber_count = len(subscribers)
+        
+        # Get number of emails we can send
+        can_send_count, all_can_send = mail_counter.increment(subscriber_count)
+        
+        if can_send_count == 0:
+            logging.error("Monthly email limit reached. No emails can be sent.")
+            return
+            
+        if not all_can_send:
+            logging.warning(f"Can only send to {can_send_count} out of {subscriber_count} subscribers due to monthly limit")
+            # Only process the number of subscribers we can send to
+            subscribers = subscribers[:can_send_count]
+
+        sent_any = False
+        for sub in subscribers:
+            data = sub.to_dict()
+            email = data.get("email")
+            confirm_token = data.get("confirm_token", "")
+            name = data.get("name", "Subscriber")
+
+            unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
+
+            rendered_html = template.render(
+                logo_url=logo_url,
+                subscriber_name=name,
+                games=new_games["prime_games"],
+                epic_games=new_games["epic_games"],
+                gog_games=new_games["gog_games"],
+                unsubscribe_url=unsubscribe_url,
+                base_url=base_url,
+                current_year=current_year,
+                confirm_token=confirm_token
+            )
+
+            send_new_games_email(email, confirm_token, rendered_html, text_content)
+            sent_any = True
+
+        if sent_any:
+            now_utc = datetime.now(timezone.utc)
+            update_last_run_time(now_utc)
+            logging.info(f"Successfully updated last_run_time to {now_utc}.")
+        else:
+            logging.info("No new games sent (no subscribers matched?), not updating last_run_time.")
+
     except Exception as e:
-        logging.error(f"Error fetching subscribers: {e}")
-        return
-
-    sent_any = False
-    for sub in subscribers:
-        data = sub.to_dict()
-        email = data.get("email")
-        confirm_token = data.get("confirm_token", "")
-        name = data.get("name", "Subscriber")
-
-        unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
-
-        rendered_html = template.render(
-            logo_url=logo_url,
-            subscriber_name=name,
-            games=new_games["prime_games"],
-            epic_games=new_games["epic_games"],
-            gog_games=new_games["gog_games"],  # Pass GOG games to template
-            unsubscribe_url=unsubscribe_url,
-            base_url=base_url,
-            current_year=current_year,
-            confirm_token=confirm_token
-        )
-
-        send_new_games_email(email, confirm_token, rendered_html, text_content)
-        sent_any = True
-
-    # 4) If we successfully sent at least one email, update last_run_time
-    if sent_any:
-        now_utc = datetime.now(timezone.utc)
-        update_last_run_time(now_utc)
-        logging.info(f"Successfully updated last_run_time to {now_utc}.")
-    else:
-        logging.info("No new games sent (no subscribers matched?), not updating last_run_time.")
+        logging.error(f"Error in newsletter process: {e}")
 
 if __name__ == "__main__":
     run_new_games_newsletter()

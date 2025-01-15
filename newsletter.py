@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 import firebase_admin
 from firebase_admin import credentials, firestore
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from mail_counter import MailCounter
 
 from load_env import load_environment
 load_environment()
@@ -27,6 +28,9 @@ gmail_app_password = os.getenv("GMAIL_APP_PASSWORD", "")
 from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
 logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Ensure LOGO_URL is set in .env
+
+# Initialize mail counter
+mail_counter = MailCounter()
 
 # -------------------------------------------------
 # Firebase Initialization
@@ -137,7 +141,6 @@ def build_games_html(subscriber_name, confirm_token):
         base_url=base_url,
         current_year=current_year,
         confirm_token=confirm_token
-        
     )
     return html
 
@@ -250,11 +253,24 @@ def run_weekly_newsletter():
         return
 
     try:
-        # Only get subscribers who want weekly or both, and are confirmed
-        subscribers = db.collection("newsletter_subscribers") \
-                        .where("frequency", "in", ["weekly", "both"]) \
-                        .where("confirmed", "==", True) \
-                        .stream()
+        subscribers = list(db.collection("newsletter_subscribers")
+            .where("frequency", "in", ["weekly", "both"])
+            .where("confirmed", "==", True)
+            .stream())
+            
+        subscriber_count = len(subscribers)
+        
+        # Get number of emails we can send
+        can_send_count, all_can_send = mail_counter.increment(subscriber_count)
+        
+        if can_send_count == 0:
+            logging.error("Monthly email limit reached. No emails can be sent.")
+            return
+            
+        if not all_can_send:
+            logging.warning(f"Can only send to {can_send_count} out of {subscriber_count} subscribers due to monthly limit")
+            # Only process the number of subscribers we can send to
+            subscribers = subscribers[:can_send_count]
 
         for sub in subscribers:
             data = sub.to_dict()
