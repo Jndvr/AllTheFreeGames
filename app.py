@@ -5,6 +5,19 @@ import smtplib
 import logging
 import uuid
 from datetime import datetime, timezone
+import asyncio
+
+# Import scrapers
+from crawler import scrape_prime_gaming
+from epic import main as epic_scraper
+from steam import scrape_steam
+from gog_freeGameCollection import scrape_gog
+from gog_giveaway import main as gog_giveaway_scraper
+
+# Import newsletter functionality
+from newsletter import run_weekly_newsletter
+from newsletter_new_games import run_new_games_newsletter
+from cleanup import cleanup_unconfirmed_subscribers
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -25,6 +38,17 @@ from flask_limiter.util import get_remote_address
 
 # Jinja2 for rendering HTML email templates
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from functools import wraps
+
+def require_api_key(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = request.headers.get('Authorization')
+        if not api_key or api_key != f"Bearer {os.getenv('API_KEY')}":
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 # -------------------------------------------------
 # 1. Environment & Logging Setup
@@ -530,6 +554,37 @@ def change_frequency(token):
         except Exception as e:
             logging.error(f"Error updating frequency with token {token}: {e}")
             return "Internal server error.", 500
+        
+@app.route("/run/<task>", methods=["POST"])
+@require_api_key
+async def run_task(task):
+    try:
+        if task == "crawler":
+            await scrape_prime_gaming()
+        elif task == "epic":
+            epic_scraper()  # Not async
+        elif task == "steam":
+            await scrape_steam()
+        elif task == "gog_free":
+            await scrape_gog()
+        elif task == "gog_giveaway":
+            await gog_giveaway_scraper()
+        elif task == "newsletter":
+            run_weekly_newsletter()  # Not async
+        elif task == "newsletter_new_games":
+            run_new_games_newsletter()  # Not async
+        elif task == "cleanup":
+            cleanup_unconfirmed_subscribers()  # Not async
+        else:
+            return jsonify({"error": f"Unknown task: {task}"}), 400
+            
+        return jsonify({"message": f"Task {task} completed successfully"}), 200
+    except Exception as e:
+        logging.error(f"Error running task {task}: {str(e)}")
+        return jsonify({"error": f"Error running task: {str(e)}"}), 500
+
+
+
         
 # -------------------------------------------------
 # RSS Feed Routes
