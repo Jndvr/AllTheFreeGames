@@ -39,8 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     categories.forEach(category => {
                         if (data[category]) {
                             data[category].forEach(game => {
-                                // Optional: Add category information if needed
-                                // game.platform = category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                // Optional: Add category info or any other field if needed
                                 gamesList.push(game);
                             });
                         }
@@ -115,87 +114,109 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to go to the previous slide manually
         const goToPrev = () => {
-            setFade(true); // Start fade-out
+            setFade(true);
             setTimeout(() => {
                 setCurrentIndex(prev => (prev - 1 + games.length) % games.length);
-                setFade(false); // Start fade-in
+                setFade(false);
             }, 1000);
         };
 
         // Function to go to a specific slide (used by indicators)
         const goToSlide = (index) => {
             if (index === currentIndex) return; // No action if the same slide is clicked
-            setFade(true); // Start fade-out
+            setFade(true);
             setTimeout(() => {
                 setCurrentIndex(index);
-                setFade(false); // Start fade-in
+                setFade(false);
             }, 1000);
         };
 
         if (!games.length) {
-            return React.createElement('div', {
-                className: 'w-full aspect-video bg-black rounded-lg flex items-center justify-center text-white',
-                style: { fontSize: '1.5rem' }
-            }, 'Loading slideshow...');
+            return React.createElement(
+                'div',
+                {
+                    className: 'w-full aspect-video bg-black rounded-lg flex items-center justify-center text-white',
+                    style: { fontSize: '1.5rem' }
+                },
+                'Loading slideshow...'
+            );
         }
 
-        return React.createElement('div', {
-            ref: slideshowRef, // Reference for event listeners if needed
-            className: 'w-full aspect-video bg-black rounded-lg overflow-hidden relative'
-        }, 
-            // Clickable Image Wrapped in an Anchor Tag with Fade Classes
-            React.createElement('a', {
-                href: games[currentIndex].url,
-                target: '_blank',
-                rel: 'noopener noreferrer',
-                className: `fade-transition ${fade ? 'opacity-0' : 'opacity-100'}`
+        return React.createElement(
+            'div',
+            {
+                ref: slideshowRef,
+                className: 'w-full aspect-video bg-black rounded-lg overflow-hidden relative'
             },
+            // Clickable Image Wrapped in an Anchor Tag with Fade Classes
+            React.createElement(
+                'a',
+                {
+                    href: games[currentIndex].url,
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    className: `fade-transition ${fade ? 'opacity-0' : 'opacity-100'}`
+                },
                 React.createElement('img', {
                     key: `game-${currentIndex}`,
                     src: games[currentIndex].imageUrl,
                     alt: games[currentIndex].title || 'Game Image',
                     className: 'w-full h-full object-cover',
-                    style: {
-                        objectPosition: 'center'
-                    },
+                    style: { objectPosition: 'center' },
                     loading: 'lazy', // Enables native lazy loading
-                    onError: (e) => { e.target.src = '/static/images/fallback.jpg'; } // Path to your fallback image
+                    onError: (e) => { e.target.src = '/static/images/fallback.jpg'; } // fallback if needed
                 })
             ),
 
             // Previous Button
-            React.createElement('button', {
-                onClick: goToPrev,
-                className: 'absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
-                'aria-label': 'Previous Slide'
-            }, '<'),
+            React.createElement(
+                'button',
+                {
+                    onClick: goToPrev,
+                    className: 'absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
+                    'aria-label': 'Previous Slide'
+                },
+                '<'
+            ),
 
             // Next Button
-            React.createElement('button', {
-                onClick: goToNext,
-                className: 'absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
-                'aria-label': 'Next Slide'
-            }, '>'),
+            React.createElement(
+                'button',
+                {
+                    onClick: goToNext,
+                    className: 'absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
+                    'aria-label': 'Next Slide'
+                },
+                '>'
+            ),
 
             // Pause/Play Button
-            React.createElement('button', {
-                onClick: togglePause,
-                className: 'absolute bottom-4 right-4 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
-                'aria-label': isPaused ? 'Play Slideshow' : 'Pause Slideshow'
-            }, isPaused ? 'Play' : 'Pause'),
+            React.createElement(
+                'button',
+                {
+                    onClick: togglePause,
+                    className: 'absolute bottom-4 right-4 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none',
+                    'aria-label': isPaused ? 'Play Slideshow' : 'Pause Slideshow'
+                },
+                isPaused ? 'Play' : 'Pause'
+            ),
 
             // Slide Indicators
-            React.createElement('div', {
-                className: 'absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2'
-            },
-                games.map((game, index) => (
+            React.createElement(
+                'div',
+                {
+                    className: 'absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2'
+                },
+                games.map((game, index) =>
                     React.createElement('span', {
                         key: index,
-                        className: `h-2 w-2 rounded-full cursor-pointer transition-colors duration-300 ${index === currentIndex ? 'bg-white' : 'bg-gray-500 hover:bg-gray-300'}`,
+                        className: `h-2 w-2 rounded-full cursor-pointer transition-colors duration-300 ${
+                            index === currentIndex ? 'bg-white' : 'bg-gray-500 hover:bg-gray-300'
+                        }`,
                         onClick: () => goToSlide(index),
                         title: game.title
                     })
-                ))
+                )
             )
         );
     }

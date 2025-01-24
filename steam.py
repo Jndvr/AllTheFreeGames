@@ -1,5 +1,3 @@
-# steam.py
-
 import asyncio
 import os
 import re
@@ -19,8 +17,6 @@ from util import (
     sanitize,
     get_current_datetime,
     send_email,
-    html_game_list,
-    write_static_games_file
 )
 from scraper_utils import (
     setup_browser_context,
@@ -33,7 +29,9 @@ from scraper_utils import (
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# Initialize Firebase
+# -----------------------------------------------------------
+# Firebase Initialization
+# -----------------------------------------------------------
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if not firebase_credentials:
     print('FIREBASE_CREDENTIALS not found in environment variables.')
@@ -47,13 +45,17 @@ except json.JSONDecodeError as e:
 
 try:
     cred = credentials.Certificate(firebase_credentials_dict)
-    firebase_admin.initialize_app(cred)
+    # Only initialize if not already initialized
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.client()
 except Exception as e:
     print('Failed to initialize Firebase:', e)
     exit(1)
 
+# -----------------------------------------------------------
 # Configuration
+# -----------------------------------------------------------
 CFG = {
     'headless': False,
     'width': 1280,
@@ -71,21 +73,24 @@ CFG = {
 os.makedirs(CFG['screenshots_dir'], exist_ok=True)
 os.makedirs(CFG['browser_data_dir'], exist_ok=True)
 
+# -----------------------------------------------------------
+# Helper: Delete All Firestore Entries (Synchronous)
+# -----------------------------------------------------------
 async def delete_all_firestore_entries(collection_ref, reason=""):
     """
     Deletes all documents in the specified Firestore collection.
     Optionally logs the reason for deletion.
+    NOTE: Firestore .delete() is synchronous, so we don't await it.
     """
     try:
         existing_games_snapshot = collection_ref.stream()
-        delete_tasks = []
         for doc in existing_games_snapshot:
             print(f"Deleting game: {doc.id} - {doc.to_dict().get('title', 'No Title')}")
-            delete_tasks.append(collection_ref.document(doc.id).delete())
-        await asyncio.gather(*delete_tasks)
+            collection_ref.document(doc.id).delete()
+
         print("All entries deleted from Firestore.")
 
-        # Optionally, log this event or update a status collection
+        # Optionally, log this event or update a status document
         status_ref = db.collection('scrape_status').document('steam')
         status_ref.set({
             'last_scrape': datetime.now(timezone.utc),
@@ -94,13 +99,13 @@ async def delete_all_firestore_entries(collection_ref, reason=""):
             'games_found': 0
         })
 
-        # Write the static games file (which will now be empty)
-        write_static_games_file(db)
-
     except Exception as delete_err:
         print(f"Error while deleting entries from Firestore: {delete_err}")
-        # Send an email notification about the failure
-        error_message = f"Steam scraper encountered an issue ({reason}) and attempted to delete all entries, but encountered an error:\n\n{repr(delete_err)}"
+        # Send an email about the failure
+        error_message = (
+            f"Steam scraper encountered an issue ({reason}) and attempted to delete all entries, "
+            f"but encountered an error:\n\n{repr(delete_err)}"
+        )
         try:
             await asyncio.to_thread(
                 send_email,
@@ -112,6 +117,9 @@ async def delete_all_firestore_entries(collection_ref, reason=""):
         except Exception as email_err:
             print(f"Failed to send error email: {email_err}")
 
+# -----------------------------------------------------------
+# Main Scraper
+# -----------------------------------------------------------
 async def scrape_steam():
     """
     Scrapes Steam for free-to-play or free-to-own games and updates Firestore.
@@ -120,14 +128,14 @@ async def scrape_steam():
     print(f"{get_current_datetime()} - Starting Steam scraper...")
 
     rate_limiter = AsyncRequestRateLimiter()
-
-    # URL to Steam's free games listing
-    steam_free_url = "https://store.steampowered.com/search/?maxprice=free&category1=998&supportedlang=english&specials=1&ndl=1"
+    steam_free_url = (
+        "https://store.steampowered.com/search/?maxprice=free"
+        "&category1=998&supportedlang=english&specials=1&ndl=1"
+    )
 
     async with async_playwright() as p:
         context, page = await setup_browser_context(p, CFG)
-
-        collection_ref = db.collection('steam_free_games')  # Initialize Firestore collection reference
+        collection_ref = db.collection('steam_free_games')
 
         try:
             # Rate limiting
@@ -140,10 +148,10 @@ async def scrape_steam():
             await human_like_mouse_movements(page, CFG['width'], CFG['height'])
             print("Performed human-like mouse movements.")
 
-            # Accept or close any cookie banner if it exists (Steam typically has a pop-up or a bar at the bottom).
+            # Accept or close any cookie banner if it exists
             accept_cookies_selectors = [
-                'button.acceptAllButton',      # Example: Steam might have a cookie acceptance button
-                '#onetrust-accept-btn-handler' # Another possible selector
+                'button.acceptAllButton',
+                '#onetrust-accept-btn-handler'
             ]
             accepted_cookies = False
             for selector in accept_cookies_selectors:
@@ -155,18 +163,32 @@ async def scrape_steam():
                     await page.wait_for_timeout(get_random_delay(1000, 2000))
                     break
             if not accepted_cookies:
-                print('No cookie banner found or it was already handled.')
+                print('No cookie banner found or already handled.')
 
-            # Wait for the search results to load
+            # Check if "0 results match your search" is present
+            # If so, no results => just delete from Firestore and exit gracefully.
+            try:
+                results_count_text = await page.locator(".search_results_count").inner_text()
+                # If text like "0 results match your search."
+                if "0 results match your search" in results_count_text.lower():
+                    print("No Steam free games right now (0 results). Deleting from Firestore.")
+                    await delete_all_firestore_entries(collection_ref, reason="0 results match your search.")
+                    return
+            except PlaywrightTimeoutError:
+                # It's fine if .search_results_count isn't found; we continue.
+                pass
+            except Exception as e:
+                print(f"Warning: Could not read .search_results_count => {e}")
+
+            # If we didn’t confirm "0 results", wait for rows
             results_selector = '.search_result_row'
             try:
                 await page.wait_for_selector(results_selector, timeout=CFG['timeout'])
                 print('Steam free games search results loaded.')
-            except PlaywrightTimeoutError:
+            except TimeoutError:
                 print('Steam free games search results did not load.')
-                # **New Logic:** Delete Firestore entries due to failure to load search results
                 await delete_all_firestore_entries(collection_ref, reason="Failed to load search results")
-                return  # Exit the function since no results were loaded
+                return
 
             # Perform scrolling to load more results
             await natural_scroll(
@@ -177,10 +199,6 @@ async def scrape_steam():
             )
 
             # Extract game elements
-            # Usually each game entry has class: .search_result_row
-            # Title: .search_name > .title
-            # URL: href of .search_result_row
-            # Image: .search_capsule img
             games_data = []
             result_rows = page.locator('.search_result_row')
             count = await result_rows.count()
@@ -196,7 +214,7 @@ async def scrape_steam():
                     title_element = row.locator('.search_name .title')
                     title = await title_element.inner_text(timeout=3000)
                     title = title.strip()
-                except PlaywrightTimeoutError:
+                except TimeoutError:
                     pass
 
                 # URL
@@ -228,14 +246,13 @@ async def scrape_steam():
             if games_data:
                 print('Sample games data:', games_data[:5])
 
+            # If no games found, clear Firestore
             if not games_data:
-                # **New Logic:** Delete Firestore entries because no games were extracted
-                print("No games data extracted. Proceeding to delete all entries in Firestore.")
+                print("No games data extracted. Deleting all entries in Firestore.")
                 await delete_all_firestore_entries(collection_ref, reason="No games data extracted")
-                return  # Exit the function since there's no data to process
+                return
 
-            # **Existing Logic Continues Here:** Update Firestore with new games
-
+            # Compare Firestore and update
             existing_games_snapshot = collection_ref.stream()
             existing_games = {}
             for doc in existing_games_snapshot:
@@ -243,6 +260,7 @@ async def scrape_steam():
 
             notify_games = []
             for game in games_data:
+                # If the data is clearly invalid, skip
                 if (
                     game['title'] == 'Unknown Title'
                     and game['url'] == 'No URL Found'
@@ -266,22 +284,18 @@ async def scrape_steam():
                     notify_games.append(game)
                 else:
                     print(f"Game already exists: {game['title']}")
-                    # Remove from existing_games so we know what is *still* present
                     del existing_games[game_id]
 
-            # Remove games no longer free / no longer in the list
+            # Remove games no longer free
             for game_id, game_data in existing_games.items():
-                print(f"Removing game no longer free or no longer in listing: {game_data['title']}")
+                print(f"Removing game no longer free: {game_data['title']}")
                 collection_ref.document(game_id).delete()
 
             print('Firestore database updated successfully.')
-            write_static_games_file(db)
-
             print("Successfully scraped Steam free games.")
 
         except Exception as e:
             print('Error during Steam scraping:', e)
-
             # On error: TAKE SCREENSHOT + SEND EMAIL
             screenshot_path = resolve_path(
                 CFG['screenshots_dir'],

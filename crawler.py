@@ -21,7 +21,7 @@ from util import (
     get_current_datetime,
     send_email,
     html_game_list,
-    write_static_games_file
+    db
 )
 from scraper_utils import (
     setup_browser_context,
@@ -35,10 +35,11 @@ from scraper_utils import (
 # Suppress UserWarnings about Firestore filters
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# We already called load_dotenv() inside load_env, so this is optional:
-# load_dotenv()
+# Initialize environment variables
+# We already called load_environment() which handles .env
+# so no separate load_dotenv() needed here.
 
-# Initialize Firebase
+# Firebase initialization
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if not firebase_credentials:
     print('FIREBASE_CREDENTIALS not found in environment variables.')
@@ -52,7 +53,9 @@ except json.JSONDecodeError as e:
 
 try:
     cred = credentials.Certificate(firebase_credentials_dict)
-    firebase_admin.initialize_app(cred)
+    # Only initialize if not already initialized
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.client()
 except Exception as e:
     print('Failed to initialize Firebase:', e)
@@ -76,7 +79,6 @@ CFG = {
 # Create necessary directories
 os.makedirs(CFG['screenshots_dir'], exist_ok=True)
 os.makedirs(CFG['browser_data_dir'], exist_ok=True)
-
 
 async def scrape_prime_gaming():
     print(f"{get_current_datetime()} - Starting Prime Gaming scraper...")
@@ -229,7 +231,6 @@ async def scrape_prime_gaming():
                 collection_ref.document(game_id).delete()
 
             print('Firestore database updated successfully.')
-            write_static_games_file(db)
 
             print("Successfully scraped Prime Gaming.")
 
@@ -253,7 +254,7 @@ async def scrape_prime_gaming():
                 send_email, 
                 'Prime Gaming Scraper Error',
                 error_message,
-                to="info@weeklygamevault.com"  # Force to info@weeklygamevault.com
+                to="info@weeklygamevault.com"
             )
 
         finally:

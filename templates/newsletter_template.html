@@ -30,20 +30,25 @@
               {% set has_prime = games|length > 0 %}
               {% set has_epic = epic_games|length > 0 %}
               {% set has_gog = gog_games|length > 0 %}
+              {% set has_steam = steam_games|length > 0 %}
               
-              {% if has_prime or has_epic or has_gog %}
+              {% if has_prime or has_epic or has_gog or has_steam %}
                 <p style="margin:0 0 15px 0;">
                   We have new free gaming offers for you. Jump to:
                   {% if has_prime %}
                     <a href="#prime-gaming" style="color:#ff9900; text-decoration:underline;">Prime Gaming</a>
-                    {% if has_epic or has_gog %}, {% endif %}
+                    {% if has_epic or has_gog or has_steam %}, {% endif %}
                   {% endif %}
                   {% if has_epic %}
                     <a href="#epic-free" style="color:#ff9900; text-decoration:underline;">Epic Games</a>
-                    {% if has_gog %}, and {% endif %}
+                    {% if has_gog or has_steam %}, {% endif %}
                   {% endif %}
                   {% if has_gog %}
-                    <a href="#gog-free" style="color:#ff9900; text-decoration:underline;">GOG</a>.
+                    <a href="#gog-free" style="color:#ff9900; text-decoration:underline;">GOG</a>
+                    {% if has_steam %}, {% endif %}
+                  {% endif %}
+                  {% if has_steam %}
+                    <a href="#steam-free" style="color:#ff9900; text-decoration:underline;">Steam</a>.
                   {% endif %}
                 </p>
               {% endif %}
@@ -198,6 +203,58 @@
                     </td>
 
                     {% if (i + 1) % columns == 0 or i == total_gog - 1 %}
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                </table>
+              </td>
+            </tr>
+          {% endif %}
+
+          <!-- Steam Games section -->
+          {% if has_steam %}
+            <tr>
+              <td align="center" style="padding:0 20px 30px 20px;">
+                <a name="steam-free"></a>
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td align="left" style="padding:0 0 15px 0; color:#333333; font-size:18px; line-height:1.6; font-weight:bold;">
+                      Here are the latest free Steam offers:
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Modified table for STEAM (3 columns per row) -->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                  {% set columns = 3 %}
+                  {% set total_steam = steam_games|length %}
+                  {% for i in range(total_steam) %}
+                    {% if i % columns == 0 %}
+                      <tr>
+                    {% endif %}
+
+                    {% set game = steam_games[i] %}
+                    <td valign="top" align="center" style="width:33.33%; padding:10px; border:1px solid #e0e0e0; background-color:#fafafa; height:240px; vertical-align:top; box-sizing: border-box;">
+                      <table border="0" cellpadding="0" cellspacing="0" width="100%" height="100%" style="border-collapse: collapse;">
+                        <tr style="vertical-align: top;">
+                          <td align="center" style="padding:0;">
+                            <img src="{{ game.imageUrl }}" alt="{{ game.title }}" style="display:block; width:100%; height:120px; object-fit:cover; border:0;" loading="lazy" />
+                            <p style="margin:15px 0 10px; font-size:16px; color:#333333; font-weight:bold;">
+                              {{ game.title }}
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: bottom;">
+                          <td align="center" style="padding:0;">
+                            <a href="{{ game.url }}" style="display:inline-block; padding:10px 20px; background-color:#ff9900; color:#ffffff; text-decoration:none; border-radius:4px; font-size:16px; font-weight:bold; margin-top:10px;">
+                              Claim here
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+
+                    {% if (i + 1) % columns == 0 or i == total_steam - 1 %}
                       </tr>
                     {% endif %}
                   {% endfor %}

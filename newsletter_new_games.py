@@ -39,7 +39,9 @@ def initialize_firebase():
             raise ValueError("FIREBASE_CREDENTIALS is empty.")
         creds_json = json.loads(firebase_credentials_str)
         cred = credentials.Certificate(creds_json)
-        firebase_admin.initialize_app(cred)
+        # Only initialize if not already initialized
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred)
         db = firestore.client()
         logging.info("Firebase initialized successfully in newsletter_new_games.py.")
     except Exception as e:
@@ -88,69 +90,87 @@ def update_last_run_time(new_time):
 
 def build_new_games_list(last_run_time):
     """
-    Query 'prime_free_games', 'epic_free_games', and 'gog_giveaway' for docs with createdAt > last_run_time.
-    Return a dictionary with lists of newly added prime, epic, and gog games.
+    Query 'prime_free_games', 'epic_free_games', 'gog_giveaway', **and 'steam_free_games'**
+    for docs with createdAt > last_run_time.
+    Return a dictionary with lists of newly added prime, epic, gog, steam games.
     """
     if not db:
         logging.error("DB not initialized. Aborting.")
-        return {"prime_games": [], "epic_games": [], "gog_games": []}
+        return {
+            "prime_games": [],
+            "epic_games": [],
+            "gog_games": [],
+            "steam_games": [],
+        }
 
     # Fetch new Prime games
     new_prime_query = db.collection("prime_free_games").where("createdAt", ">", last_run_time)
     prime_docs = new_prime_query.stream()
-
     prime_games = []
     for doc in prime_docs:
         data = doc.to_dict()
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             prime_games.append({"title": title, "url": url, "imageUrl": image_url})
 
     # Fetch new Epic games
     new_epic_query = db.collection("epic_free_games").where("createdAt", ">", last_run_time)
     epic_docs = new_epic_query.stream()
-
     epic_games = []
     for doc in epic_docs:
         data = doc.to_dict()
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
     # Fetch new GOG games
     new_gog_query = db.collection("gog_giveaway").where("createdAt", ">", last_run_time)
     gog_docs = new_gog_query.stream()
-
     gog_games = []
     for doc in gog_docs:
         data = doc.to_dict()
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             gog_games.append({"title": title, "url": url, "imageUrl": image_url})
 
-    # Debugging logs
+    # Fetch new Steam games
+    new_steam_query = db.collection("steam_free_games").where("createdAt", ">", last_run_time)
+    steam_docs = new_steam_query.stream()
+    steam_games = []
+    for doc in steam_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "#")
+        image_url = data.get("imageUrl", "")
+        if title and url and image_url:
+            steam_games.append({"title": title, "url": url, "imageUrl": image_url})
+
     logging.info(f"Found {len(prime_games)} new Prime Gaming games.")
     logging.info(f"Found {len(epic_games)} new Epic Games games.")
     logging.info(f"Found {len(gog_games)} new GOG games.")
+    logging.info(f"Found {len(steam_games)} new Steam games.")
 
-    return {"prime_games": prime_games, "epic_games": epic_games, "gog_games": gog_games}
+    return {
+        "prime_games": prime_games,
+        "epic_games": epic_games,
+        "gog_games": gog_games,
+        "steam_games": steam_games,
+    }
 
 def build_text_list(new_games):
     """
-    Build a plain-text version for the email body, including Prime, Epic, and GOG games.
+    Build a plain-text version for the email body, including Prime, Epic, GOG, Steam games.
     """
     prime_games = new_games.get("prime_games", [])
     epic_games = new_games.get("epic_games", [])
     gog_games = new_games.get("gog_games", [])
+    steam_games = new_games.get("steam_games", [])
 
     lines = []
 
@@ -168,6 +188,11 @@ def build_text_list(new_games):
         lines.append("GOG Offers:\n" + "\n".join([f"{g['title']}\n  URL: {g['url']}" for g in gog_games]))
     else:
         lines.append("GOG Offers:\n(No new GOG games found)\n")
+
+    if steam_games:
+        lines.append("Steam Offers:\n" + "\n".join([f"{g['title']}\n  URL: {g['url']}" for g in steam_games]))
+    else:
+        lines.append("Steam Offers:\n(No new Steam games found)\n")
 
     return "\n".join(lines)
 
@@ -208,8 +233,12 @@ def run_new_games_newsletter():
 
     last_run_time = fetch_last_run_time()
     new_games = build_new_games_list(last_run_time)
-    
-    if not new_games["prime_games"] and not new_games["epic_games"] and not new_games["gog_games"]:
+
+    # If there's no newly added game in any category, do nothing
+    if (not new_games["prime_games"] and
+        not new_games["epic_games"] and
+        not new_games["gog_games"] and
+        not new_games["steam_games"]):
         logging.info("No newly added games found since last_run_time. Exiting.")
         return
 
@@ -221,7 +250,7 @@ def run_new_games_newsletter():
             .where("frequency", "in", ["newgame", "both"])
             .where("confirmed", "==", True)
             .stream())
-        
+
         subscriber_count = len(subscribers)
         
         # Get number of emails we can send
@@ -245,12 +274,14 @@ def run_new_games_newsletter():
 
             unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
 
+            # We now pass steam games to the template as well
             rendered_html = template.render(
                 logo_url=logo_url,
                 subscriber_name=name,
-                games=new_games["prime_games"],
-                epic_games=new_games["epic_games"],
+                games=new_games["prime_games"],    # prime
+                epic_games=new_games["epic_games"], 
                 gog_games=new_games["gog_games"],
+                steam_games=new_games["steam_games"],  # new
                 unsubscribe_url=unsubscribe_url,
                 base_url=base_url,
                 current_year=current_year,

@@ -27,14 +27,11 @@ gmail_username = os.getenv("GMAIL_USERNAME", "")
 gmail_app_password = os.getenv("GMAIL_APP_PASSWORD", "")
 from_email = os.getenv("FROM_EMAIL", gmail_username)
 base_url = os.getenv("BASE_URL", "http://127.0.0.1:5001")
-logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Ensure LOGO_URL is set in .env
+logo_url = os.getenv("LOGO_URL", "https://yourdomain.com/path-to-your-logo.png")  # Ensure LOGO_URL is set
 
 # Initialize mail counter
 mail_counter = MailCounter()
 
-# -------------------------------------------------
-# Firebase Initialization
-# -------------------------------------------------
 def initialize_firebase():
     """
     Initializes Firebase with service account credentials.
@@ -45,7 +42,9 @@ def initialize_firebase():
             raise ValueError("FIREBASE_CREDENTIALS is empty. Check your .env file.")
         creds_json = json.loads(firebase_credentials_str)
         cred = credentials.Certificate(creds_json)
-        firebase_admin.initialize_app(cred)
+        # Only initialize if not already initialized
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred)
         db = firestore.client()
         logging.info("Firebase initialized successfully in newsletter.py.")
     except ValueError as ve:
@@ -60,21 +59,19 @@ def initialize_firebase():
 
 initialize_firebase()
 
-# -------------------------------------------------
-# Jinja2 Environment / Template
-# -------------------------------------------------
 env = Environment(
     loader=FileSystemLoader(searchpath="./templates"),
     autoescape=select_autoescape(['html', 'xml'])
 )
 template = env.get_template("newsletter_template.html")
 
-# -------------------------------------------------
-# Build HTML using Jinja2
-# -------------------------------------------------
 def build_games_html(subscriber_name, confirm_token):
     """
-    Reads games from Firestore collections 'prime_free_games', 'epic_free_games', and 'gog_giveaway'
+    Reads games from Firestore collections:
+        - prime_free_games
+        - epic_free_games
+        - gog_giveaway
+        - steam_free_games
     and constructs the HTML content for the email using Jinja2.
     Reuses 'confirm_token' to build the unsubscribe link.
     """
@@ -83,7 +80,7 @@ def build_games_html(subscriber_name, confirm_token):
         logging.error("Database is not initialized. Cannot fetch games.")
         return "<p>No data available.</p>"
 
-    # Fetch PRIME games
+    # Fetch PRIME
     prime_docs = db.collection("prime_free_games").stream()
     prime_games = []
     for doc in prime_docs:
@@ -91,11 +88,10 @@ def build_games_html(subscriber_name, confirm_token):
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             prime_games.append({"title": title, "url": url, "imageUrl": image_url})
 
-    # Fetch EPIC games
+    # Fetch EPIC
     epic_docs = db.collection("epic_free_games").stream()
     epic_games = []
     for doc in epic_docs:
@@ -103,11 +99,10 @@ def build_games_html(subscriber_name, confirm_token):
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             epic_games.append({"title": title, "url": url, "imageUrl": image_url})
 
-    # Fetch GOG games
+    # Fetch GOG giveaway
     gog_docs = db.collection("gog_giveaway").stream()
     gog_games = []
     for doc in gog_docs:
@@ -115,28 +110,39 @@ def build_games_html(subscriber_name, confirm_token):
         title = data.get("title", "Unknown Title")
         url = data.get("url", "#")
         image_url = data.get("imageUrl", "")
-        # Ensure all necessary fields are present
         if title and url and image_url:
             gog_games.append({"title": title, "url": url, "imageUrl": image_url})
 
-    # Debugging logs
+    # Fetch STEAM
+    steam_docs = db.collection("steam_free_games").stream()
+    steam_games = []
+    for doc in steam_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "#")
+        image_url = data.get("imageUrl", "")
+        if title and url and image_url:
+            steam_games.append({"title": title, "url": url, "imageUrl": image_url})
+
     logging.info(f"Found {len(prime_games)} Prime Gaming games.")
     logging.info(f"Found {len(epic_games)} Epic Games games.")
     logging.info(f"Found {len(gog_games)} GOG games.")
+    logging.info(f"Found {len(steam_games)} Steam games.")
 
-    if not prime_games and not epic_games and not gog_games:
+    if not (prime_games or epic_games or gog_games or steam_games):
         return "<p>No free games found in the database.</p>"
 
     current_year = time.strftime("%Y")
     unsubscribe_url = f"{base_url}/unsubscribe/{confirm_token}"
 
-    # Render the template with prime_games, epic_games, and gog_games
+    # Render the template with prime, epic, gog, steam
     html = template.render(
         logo_url=logo_url,
         subscriber_name=subscriber_name,
-        games=prime_games,        # existing Jinja variable for prime
-        epic_games=epic_games,    # existing Jinja variable for epic
-        gog_games=gog_games,      # new Jinja variable for GOG
+        games=prime_games,             # prime
+        epic_games=epic_games,         # epic
+        gog_games=gog_games,           # gog
+        steam_games=steam_games,       # steam
         unsubscribe_url=unsubscribe_url,
         base_url=base_url,
         current_year=current_year,
@@ -144,12 +150,9 @@ def build_games_html(subscriber_name, confirm_token):
     )
     return html
 
-# -------------------------------------------------
-# Build Plain-Text Version
-# -------------------------------------------------
 def build_games_text():
     """
-    Reads games from 'prime_free_games', 'epic_free_games', and 'gog_giveaway'
+    Reads games from 'prime_free_games', 'epic_free_games', 'gog_giveaway', 'steam_free_games'
     and constructs the plain text content for the email.
     """
     if not db:
@@ -183,6 +186,15 @@ def build_games_text():
         url = data.get("url", "No URL")
         gog_lines.append(f"{title}\n  URL: {url}\n")
 
+    # STEAM
+    steam_docs = db.collection("steam_free_games").stream()
+    steam_lines = []
+    for doc in steam_docs:
+        data = doc.to_dict()
+        title = data.get("title", "Unknown Title")
+        url = data.get("url", "No URL")
+        steam_lines.append(f"{title}\n  URL: {url}\n")
+
     text_parts = []
 
     if prime_lines:
@@ -200,11 +212,13 @@ def build_games_text():
     else:
         text_parts.append("GOG Offers:\n(No new GOG games found)\n")
 
+    if steam_lines:
+        text_parts.append("Steam Offers:\n" + "\n".join(steam_lines))
+    else:
+        text_parts.append("Steam Offers:\n(No new Steam games found)\n")
+
     return "\n".join(text_parts)
 
-# -------------------------------------------------
-# Send the Newsletter Email
-# -------------------------------------------------
 def send_newsletter_email(to_email, confirm_token, html_content, text_content):
     """
     Sends an email with the free games content to the given email address.
@@ -238,13 +252,10 @@ def send_newsletter_email(to_email, confirm_token, html_content, text_content):
     except Exception as e:
         logging.error(f"Failed to send newsletter to {to_email}: {e}")
 
-# -------------------------------------------------
-# Main Newsletter Logic
-# -------------------------------------------------
 def run_weekly_newsletter():
     """
-    1. Builds the free games HTML and text (Prime + Epic + GOG).
-    2. Fetches all subscribers who have frequency in ["weekly", "both"] and confirmed == True.
+    1. Builds the free games HTML and text (Prime + Epic + GOG + Steam).
+    2. Fetches all subscribers with frequency in ["weekly", "both"] and confirmed == True.
     3. Sends the newsletter email to each matching subscriber.
     """
     logging.info("Starting weekly newsletter job...")
@@ -276,7 +287,7 @@ def run_weekly_newsletter():
             data = sub.to_dict()
             email = data.get("email")
             confirm_token = data.get("confirm_token", "")
-            name = data.get("name", "Subscriber")  # Default to "Subscriber" if not provided
+            name = data.get("name", "Subscriber")  # Default to "Subscriber"
 
             # Build the HTML & text for each subscriber
             html_content = build_games_html(name, confirm_token)
@@ -290,8 +301,5 @@ def run_weekly_newsletter():
 
     logging.info("Weekly newsletter job completed successfully.")
 
-# -------------------------------------------------
-# Entry Point
-# -------------------------------------------------
 if __name__ == "__main__":
     run_weekly_newsletter()

@@ -28,8 +28,7 @@ from util import (
     sanitize,
     get_current_datetime,
     send_email,
-    html_game_list,
-    write_static_games_file
+    html_game_list  # Removed write_static_games_file
 )
 from scraper_utils import (
     setup_browser_context,
@@ -41,7 +40,9 @@ from scraper_utils import (
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# load_dotenv() # optional if you rely on load_env
+# You can optionally call load_dotenv() here if you rely on .env, 
+# but load_environment() should handle it:
+# load_dotenv()
 
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if not firebase_credentials:
@@ -56,14 +57,16 @@ except json.JSONDecodeError as e:
 
 try:
     cred = credentials.Certificate(firebase_credentials_dict)
-    firebase_admin.initialize_app(cred)
+    # Only initialize if not already initialized
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.client()
 except Exception as e:
     print('Failed to initialize Firebase:', e)
     exit(1)
 
 CFG = {
-    'headless': False,
+    'headless': True,
     'width': 1280,
     'height': 800,
     'screenshots_dir': resolve_path('screenshots', 'gog'),
@@ -102,8 +105,7 @@ async def scrape_gog():
             await page.goto(GOG_FREE_GAMES_URL, wait_until='domcontentloaded')
             await page.wait_for_timeout(get_random_delay(2000, 4000))
 
-            # No success screenshots
-            # Only do a log here
+            # No success screenshot needed
             print("Page loaded. No success screenshot taken.")
 
             await human_like_mouse_movements(page, CFG['width'], CFG['height'])
@@ -167,6 +169,7 @@ async def scrape_gog():
                     image_element = giveaway.locator(image_selector).first
                     srcset = await image_element.get_attribute('srcset', timeout=5000)
                     if srcset:
+                        # Take the first image from the srcset
                         image_url = 'https:' + srcset.split(',')[0].strip().split(' ')[0]
                 except PlaywrightTimeoutError:
                     print(f"Failed to extract image URL for giveaway {i + 1}.")
@@ -206,19 +209,17 @@ async def scrape_gog():
                     print(f"Game already exists: {game['title']}")
                     del existing_games[game_id]
 
-            # Remove old
+            # Remove old freebies no longer listed
             for game_id, gdata in existing_games.items():
                 print(f"Removing game no longer free: {gdata.get('title', game_id)}")
                 collection_ref.document(game_id).delete()
 
             print('Firestore database updated successfully.')
-            write_static_games_file(db)
+            # Removed write_static_games_file(db)
 
-            # On success => no email, no screenshot
             print("GOG free game collection updated.")
 
         except Exception as e:
-            # On error => screenshot + email
             print('--- Exception in GOG scraper:')
             traceback.print_exc()
 
@@ -239,7 +240,7 @@ async def scrape_gog():
                 error_message,
                 to="info@weeklygamevault.com"
             )
-            # raise  # optionally re-raise
+            # optionally re-raise or just exit
 
         finally:
             await context.close()

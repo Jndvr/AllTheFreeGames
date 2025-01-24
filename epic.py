@@ -13,10 +13,8 @@ from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-from util import sanitize, send_email, write_static_games_file
-
-# If needed, load_dotenv() again or just rely on load_env above
-# load_dotenv()
+from util import sanitize, send_email  # Removed write_static_games_file
+# from util import sanitize, send_email, write_static_games_file
 
 def get_epic_free_games():
     """
@@ -26,13 +24,13 @@ def get_epic_free_games():
       - imageUrl
     """
     endpoint = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions"
-    
+
     from scraper_utils import get_random_user_agent
     headers = {"User-Agent": get_random_user_agent()}
 
-    resp = requests.get(endpoint, timeout=30)  # you can pass headers=headers
+    resp = requests.get(endpoint, timeout=30)
     resp.raise_for_status()
-    
+
     data = resp.json()
     elements = (
         data
@@ -41,13 +39,13 @@ def get_epic_free_games():
         .get("searchStore", {})
         .get("elements", [])
     )
-    
+
     free_games = []
-    
+
     for elem in elements:
         price_info = elem.get("price", {}).get("totalPrice", {})
         discount_price = price_info.get("discountPrice", None)
-        
+
         if discount_price == 0:
             title = elem.get("title", "Unknown Title")
             product_slug = elem.get("productSlug")
@@ -65,13 +63,13 @@ def get_epic_free_games():
                 image_url = key_images[0].get("url", "No Image Found")
             else:
                 image_url = "No Image Found"
-            
+
             free_games.append({
                 "title": title,
                 "url": store_url,
                 "imageUrl": image_url
             })
-    
+
     return free_games
 
 
@@ -93,7 +91,7 @@ def update_firestore_with_free_games(games_data):
 
     try:
         cred = credentials.Certificate(firebase_credentials_dict)
-        # If already initialized, you might see an error, so check:
+        # Only initialize if not already initialized
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
         db = firestore.client()
@@ -138,8 +136,7 @@ def update_firestore_with_free_games(games_data):
         collection_ref.document(game_id).delete()
 
     print('Firestore database updated successfully.')
-    write_static_games_file(db)
-
+    # Removed write_static_games_file(db) call
 
 def main():
     """
@@ -151,7 +148,7 @@ def main():
         print("Free games found:")
         for fg in free_games:
             print(f" - {fg['title']} => {fg['url']}")
-        
+
         update_firestore_with_free_games(free_games)
         print("Epic free games updated successfully.")
 

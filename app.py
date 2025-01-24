@@ -80,7 +80,9 @@ environment = os.getenv("ENVIRONMENT", "development").lower()
 try:
     firebase_creds_json = json.loads(firebase_credentials_str)
     cred = credentials.Certificate(firebase_creds_json)
-    firebase_admin.initialize_app(cred)
+    # Only initialize if not already initialized
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.client()
     logging.info("Firebase initialized successfully.")
 except Exception as e:
@@ -112,30 +114,6 @@ env = Environment(
 # -------------------------------------------------
 # 5. Helper Functions
 # -------------------------------------------------
-def load_games_data():
-    """Load games data from the appropriate JSON file."""
-    filename = 'all_games.json' if environment == "production" else 'all_games_dev.json'
-    filepath = os.path.join("static_data", filename)
-
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logging.info(f"Loaded games data from {filename}")
-        return data
-    except FileNotFoundError:
-        logging.error(f"JSON file not found: {filename}")
-    except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON file {filename}: {e}")
-
-    # Return empty data if loading fails
-    return {
-        "prime_games": [],
-        "epic_games": [],
-        "steam_games": [],
-        "gog_free": [],
-        "gog_giveaway": []
-    }
-
 def is_valid_email(email: str) -> bool:
     """Check if the email has a valid format."""
     return bool(EMAIL_REGEX.match(email))
@@ -238,14 +216,14 @@ def verify_recaptcha(response_token: str) -> bool:
 
 @app.route("/", methods=["GET"])
 def home():
-    """Render the home page with an email subscription form."""
-    if environment == "production":
-        games_json_path = url_for('get_static_data', filename='all_games.json')
-    else:
-        games_json_path = url_for('get_static_data', filename='all_games_dev.json')
+    """
+    Render the home page with an email subscription form.
+    The slideshow will fetch games from the new /games_data endpoint.
+    """
+    # Instead of pointing to a static file, we point to a Firestore-based JSON route
+    games_json_path = url_for("games_data")
 
     current_year = datetime.now(timezone.utc).year
-
 
     return render_template(
         "index.html",
@@ -254,27 +232,39 @@ def home():
         current_year=current_year
     )
 
-@app.route("/static_data/<path:filename>")
-def get_static_data(filename):
-    """Serve static_data JSON files securely."""
-    allowed_files = ['all_games.json', 'all_games_dev.json']
-    if filename not in allowed_files:
-        logging.warning(f"Attempt to access unauthorized file: {filename}")
-        return jsonify({"error": "File not found."}), 404
+@app.route("/games_data", methods=["GET"])
+def games_data():
+    """
+    Returns JSON game data from Firestore
+    (Prime, Epic, GOG Free, GOG Giveaway, Steam).
+    Used by the slideshow and anywhere else we need raw JSON.
+    """
+    if not db:
+        return jsonify({"error": "Firestore is not initialized"}), 500
 
     try:
-        response = make_response(send_from_directory('static_data', filename))
-        response.headers['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
-        logging.info(f"Served static data file: {filename}")
-        return response
+        prime_docs = db.collection("prime_free_games").stream()
+        epic_docs = db.collection("epic_free_games").stream()
+        gog_free_docs = db.collection("gog_free_games").stream()
+        gog_giveaway_docs = db.collection("gog_giveaway").stream()
+        steam_docs = db.collection("steam_free_games").stream()
+
+        data = {
+            "prime_games": [doc.to_dict() for doc in prime_docs],
+            "epic_games": [doc.to_dict() for doc in epic_docs],
+            "gog_free": [doc.to_dict() for doc in gog_free_docs],
+            "gog_giveaway": [doc.to_dict() for doc in gog_giveaway_docs],
+            "steam_games": [doc.to_dict() for doc in steam_docs],
+        }
+        return jsonify(data), 200
     except Exception as e:
-        logging.error(f"Error serving file {filename}: {e}")
-        return jsonify({"error": "Internal server error."}), 500
+        logging.error(f"Error reading games from Firestore: {e}")
+        return jsonify({"error": "Failed to retrieve games data"}), 500
 
 @app.route("/PrivacyPolicy", methods=["GET"])
 def privacy_policy():
     """Render the Privacy Policy page."""
-    current_year = datetime.now(timezone.utc).year  # Updated line
+    current_year = datetime.now(timezone.utc).year
     return render_template("PrivacyPolicy.html", current_year=current_year)
 
 @app.route("/contact", methods=["GET", "POST"])
@@ -285,7 +275,7 @@ def contact():
     - Then show success and redirect to home after 3 seconds.
     """
     if request.method == "GET":
-        current_year = datetime.now(timezone.utc).year  # Updated line
+        current_year = datetime.now(timezone.utc).year
         return render_template("contact.html", current_year=current_year)
     else:
         recaptcha_token = request.form.get("g-recaptcha-response", "")
@@ -473,17 +463,11 @@ def unsubscribe(token):
 @app.route("/AvailableGames", methods=["GET"])
 def available_games():
     """
-    Renders the Available Games page by loading data from the appropriate JSON file.
+    Renders the Available Games page by loading data directly from Firestore
+    (instead of any static file).
     """
-    filename = 'all_games.json' if environment == "production" else 'all_games_dev.json'
-    filepath = os.path.join("static_data", filename)
-
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        logging.info(f"Loaded available games from {filename}")
-    except FileNotFoundError:
-        logging.error(f"JSON file not found: {filename}. Serving empty game lists.")
+    if not db:
+        logging.error("Firestore database not initialized.")
         data = {
             "prime_games": [],
             "epic_games": [],
@@ -491,17 +475,33 @@ def available_games():
             "gog_giveaway": [],
             "steam_games": []
         }
-    except json.JSONDecodeError as e:
-        logging.error(f"Error decoding JSON file {filename}: {e}. Serving empty game lists.")
-        data = {
-            "prime_games": [],
-            "epic_games": [],
-            "gog_free": [],
-            "gog_giveaway": [],
-            "steam_games": []
-        }
+    else:
+        try:
+            prime_docs = db.collection("prime_free_games").stream()
+            epic_docs = db.collection("epic_free_games").stream()
+            gog_free_docs = db.collection("gog_free_games").stream()
+            gog_giveaway_docs = db.collection("gog_giveaway").stream()
+            steam_docs = db.collection("steam_free_games").stream()
 
-    current_year = datetime.now(timezone.utc).year  # Updated line
+            data = {
+                "prime_games": [d.to_dict() for d in prime_docs],
+                "epic_games": [d.to_dict() for d in epic_docs],
+                "gog_free": [d.to_dict() for d in gog_free_docs],
+                "gog_giveaway": [d.to_dict() for d in gog_giveaway_docs],
+                "steam_games": [d.to_dict() for d in steam_docs]
+            }
+            logging.info("Loaded available games from Firestore.")
+        except Exception as e:
+            logging.error(f"Error loading from Firestore: {e}")
+            data = {
+                "prime_games": [],
+                "epic_games": [],
+                "gog_free": [],
+                "gog_giveaway": [],
+                "steam_games": []
+            }
+
+    current_year = datetime.now(timezone.utc).year
 
     return render_template(
         "available_games.html",
@@ -523,7 +523,7 @@ def change_frequency(token):
         return "Database not initialized. Contact administrator.", 500
 
     if request.method == "GET":
-        current_year = datetime.now(timezone.utc).year  # Updated line
+        current_year = datetime.now(timezone.utc).year
         return render_template("change_frequency.html", token=token, current_year=current_year)
     else:
         # POST request to update frequency
@@ -533,7 +533,6 @@ def change_frequency(token):
             return "Invalid frequency choice.", 400
 
         try:
-            # Find subscriber with the given token
             docs = db.collection("newsletter_subscribers") \
                      .where("confirm_token", "==", token) \
                      .stream()
@@ -543,7 +542,7 @@ def change_frequency(token):
                 doc.reference.update({"frequency": new_freq})
                 updated = True
                 logging.info(f"Newsletter frequency updated to '{new_freq}' for {doc.to_dict().get('email')}")
-                break  # Only one matching document
+                break
 
             if updated:
                 return f"Your frequency has been updated to '{new_freq}'. Thank you!"
@@ -554,7 +553,7 @@ def change_frequency(token):
         except Exception as e:
             logging.error(f"Error updating frequency with token {token}: {e}")
             return "Internal server error.", 500
-        
+
 @app.route("/run/<task>", methods=["POST"])
 @require_api_key
 async def run_task(task):
@@ -577,31 +576,51 @@ async def run_task(task):
             cleanup_unconfirmed_subscribers()  # Not async
         else:
             return jsonify({"error": f"Unknown task: {task}"}), 400
-            
+
         return jsonify({"message": f"Task {task} completed successfully"}), 200
     except Exception as e:
         logging.error(f"Error running task {task}: {str(e)}")
         return jsonify({"error": f"Error running task: {str(e)}"}), 500
 
-
-
-        
 # -------------------------------------------------
 # RSS Feed Routes
 # -------------------------------------------------
 @app.route("/rss_feed_raw.xml", methods=["GET"])
 def rss_feed_raw():
-    """Generate and serve the raw RSS feed."""
-    games_data = load_games_data()
-    last_build_date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')
+    """
+    Generate and serve the raw RSS feed from Firestore data
+    (instead of static JSON files).
+    """
+    if not db:
+        return make_response("Firestore not initialized.", 500)
 
-    # Render the raw RSS feed template
-    rss_content = render_template(
-        "rss_feed.xml",
-        games_data=games_data,
-        last_build_date=last_build_date
-    )
-    return make_response(rss_content, 200, {"Content-Type": "application/rss+xml"})
+    try:
+        prime_docs = db.collection("prime_free_games").stream()
+        epic_docs = db.collection("epic_free_games").stream()
+        gog_free_docs = db.collection("gog_free_games").stream()
+        gog_giveaway_docs = db.collection("gog_giveaway").stream()
+        steam_docs = db.collection("steam_free_games").stream()
+
+        games_data = {
+            "prime_games": [d.to_dict() for d in prime_docs],
+            "epic_games": [d.to_dict() for d in epic_docs],
+            "gog_free": [d.to_dict() for d in gog_free_docs],
+            "gog_giveaway": [d.to_dict() for d in gog_giveaway_docs],
+            "steam_games": [d.to_dict() for d in steam_docs]
+        }
+
+        last_build_date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')
+
+        # Render the raw RSS feed template
+        rss_content = render_template(
+            "rss_feed.xml",
+            games_data=games_data,
+            last_build_date=last_build_date
+        )
+        return make_response(rss_content, 200, {"Content-Type": "application/rss+xml"})
+    except Exception as e:
+        logging.error(f"Error generating RSS feed: {e}")
+        return make_response("Internal server error.", 500)
 
 @app.route("/rss", methods=["GET"])
 def rss_feed():
@@ -610,7 +629,18 @@ def rss_feed():
     return render_template("rss_feed.html", rss_url=rss_url)
 
 # -------------------------------------------------
-# 7. Main Entry Point
+# 7. Legal Notice Route (NEW)
+# -------------------------------------------------
+@app.route("/LegalNotice", methods=["GET"])
+def legal_notice():
+    """
+    Renders the Legal Notice page.
+    """
+    current_year = datetime.now(timezone.utc).year
+    return render_template("legal_notice.html", current_year=current_year)
+
+# -------------------------------------------------
+# 8. Main Entry Point
 # -------------------------------------------------
 if __name__ == "__main__":
     # Run the Flask app

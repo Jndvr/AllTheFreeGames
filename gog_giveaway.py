@@ -9,8 +9,6 @@ from datetime import datetime, timezone
 from load_env import load_environment
 load_environment()
 
-from dotenv import load_dotenv
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -18,14 +16,14 @@ from scraper_utils import setup_browser_context
 from util import (
     resolve_path,
     sanitize,
-    send_email,
-    write_static_games_file
+    send_email
+    # Removed write_static_games_file
 )
 
 ################################################################################
 # 1) FIRESTORE INITIALIZATION
 ################################################################################
-# load_dotenv() # optional if relying on load_env
+# load_dotenv() # optional if you're relying on load_env
 firebase_credentials = os.getenv('FIREBASE_CREDENTIALS')
 if not firebase_credentials:
     print('FIREBASE_CREDENTIALS not found in environment variables.')
@@ -39,7 +37,9 @@ except json.JSONDecodeError as e:
 
 try:
     cred = credentials.Certificate(firebase_credentials_dict)
-    firebase_admin.initialize_app(cred)
+    # Only initialize if not already initialized
+    if not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
     db = firestore.client()
 except Exception as e:
     print('Failed to initialize Firebase:', e)
@@ -170,7 +170,7 @@ async def main():
             collection_ref.document(game_id).delete()
 
         print('Firestore database updated successfully.')
-        write_static_games_file(db)
+        # Removed write_static_games_file(db)
 
         print("GOG giveaway update complete.")
 
